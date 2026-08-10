@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { upload } from "@vercel/blob/client";
 
 interface ItemKit {
   id: string;
@@ -61,28 +62,35 @@ export default function UploadInterface() {
     }
   };
 
-  // Envio de arquivos com validação rígida de erro no servidor
+  // Envio direto para o Vercel Blob (Sem limite de 4.5MB)
   const handleUpload = async () => {
     if (novosArquivos.length === 0) return;
     setUploading(true);
 
     try {
       for (const item of novosArquivos) {
-        const formData = new FormData();
-        formData.append("file", item.file);
-        formData.append("categoria", item.categoria);
-        formData.append("dataUpload", dataSelecao);
-
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
+        // 1. Upload direto do navegador para o Vercel Blob
+        const blob = await upload(item.file.name, item.file, {
+          access: "public",
+          handleUploadUrl: "/api/admin/upload",
+          clientPayload: JSON.stringify({
+            categoria: item.categoria,
+            dataUpload: dataSelecao,
+          }),
         });
 
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || `Erro ${res.status}: Não foi possível salvar o arquivo.`);
-        }
+        // 2. Registra os dados do arquivo gerado via JSON leve
+        await fetch("/api/kit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: item.file.name,
+            categoria: item.categoria,
+            url: blob.url,
+            tamanho: `${(item.file.size / (1024 * 1024)).toFixed(2)} MB`,
+            dataUpload: dataSelecao,
+          }),
+        });
       }
 
       alert("Arquivos publicados e salvos com sucesso!");

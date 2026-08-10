@@ -52,8 +52,8 @@ export async function POST(request: Request) {
           nome: nome || "Não informado",
           email: email || "Não informado",
           telefone: telefone || "Não informado",
-          mensagem: mensagem || (isWhatsapp ? "Contato via modal WhatsApp" : "Contato via site Nova Califórnia"),
-          origem: isWhatsapp ? "WhatsApp Modal - Nova Califórnia" : "Formulário de Contato - Nova Califórnia",
+          mensagem: mensagem || (isWhatsapp ? "WhatsApp" : "Contato via site Nova Califórnia"),
+          origem: isWhatsapp ? "WhatsApp" : "Formulário de Contato - Nova Califórnia",
         },
       ])
       .select();

@@ -55,7 +55,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
           nome: formData.name,
           email: emailLimpo,
           telefone: formData.whatsapp,
-          mensagem: "Contato via modal WhatsApp - Nova Califórnia",
+          mensagem: "WhatsApp - Nova Califórnia",
           via: "whatsapp",
         }),
       });

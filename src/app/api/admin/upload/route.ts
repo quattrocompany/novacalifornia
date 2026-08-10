@@ -17,29 +17,29 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname) => {
-        // Exemplo: pathname contém o nome do arquivo que está sendo enviado
-        console.log(">>> GERANDO TOKEN PARA UPLOAD DO ARQUIVO:", pathname);
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+  console.log(">>> GERANDO TOKEN PARA UPLOAD DO ARQUIVO:", pathname);
 
-        return {
-          allowedContentTypes: [
-            "image/jpeg",
-            "image/jpg",
-            "image/png",
-            "image/webp",
-            "application/pdf",
-            "application/zip",
-            "application/x-zip",
-            "application/x-zip-compressed",
-            "application/octet-stream", // Garante suporte a arquivos ZIP/MP4 com MIME genérico
-            "video/mp4",
-            "video/quicktime", // Suporte a vídeos enviados de iOS/Safari (.mov/mp4)
-          ],
-          tokenPayload: JSON.stringify({
-            uploadedAt: new Date().toISOString(),
-          }),
-        };
-      },
+  return {
+    allowedContentTypes: [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "application/pdf",
+      "application/zip",
+      "application/x-zip",
+      "application/x-zip-compressed",
+      "application/octet-stream",
+      "video/mp4",
+      "video/quicktime",
+    ],
+    tokenPayload: JSON.stringify({
+      uploadedAt: new Date().toISOString(),
+      clientPayload: clientPayload || null,
+    }),
+  };
+},
       onUploadCompleted: async ({ blob, tokenPayload }) => {
         console.log(">>> UPLOAD DIRETO CONCLUÍDO NO VERCEL BLOB:", blob.url, tokenPayload);
       },
