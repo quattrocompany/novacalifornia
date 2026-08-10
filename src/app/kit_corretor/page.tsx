@@ -12,30 +12,51 @@ interface ItemKit {
   dataUpload: string;
 }
 
+const imagensPadraoFallback: ItemKit[] = [
+  { id: "f1", url: "/img/hero.jpg", nome: "Fachada Principal", categoria: "imagem_avulsa", tamanho: "3.2 MB", dataUpload: "2026-08-10" },
+  { id: "f2", url: "/img/02.jpg", nome: "Portaria Central", categoria: "imagem_avulsa", tamanho: "2.8 MB", dataUpload: "2026-08-10" },
+  { id: "f3", url: "/img/metragem.png", nome: "Plantas e Metragem", categoria: "imagem_avulsa", tamanho: "1.5 MB", dataUpload: "2026-08-10" },
+  { id: "f4", url: "/img/mcmv2.png", nome: "Minha Casa Minha Vida", categoria: "imagem_avulsa", tamanho: "1.1 MB", dataUpload: "2026-08-10" },
+];
+
 export default function KitCorretorPage() {
   const [itens, setItens] = useState<ItemKit[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dataFiltro, setDataFiltro] = useState<string>("todas");
+  const [loading, setLoading] = useState(true);
+  const [downloadingZip, setDownloadingZip] = useState(false);
 
-  // Carrega os arquivos cadastrados na API
   useEffect(() => {
-    async function carregarMateriais() {
+    async function carregarKit() {
       try {
         const res = await fetch("/api/kit");
         const data = await res.json();
-        if (res.ok && data.items) {
+        
+        if (data.items && data.items.length > 0) {
           setItens(data.items);
+          const datas = Array.from(new Set(data.items.map((i: ItemKit) => i.dataUpload))).sort().reverse();
+          if (datas.length > 0) {
+            setDataFiltro(datas[0] as string);
+          }
+        } else {
+          setItens(imagensPadraoFallback);
         }
-      } catch (err) {
-        console.error("Erro ao carregar kit corretor:", err);
+      } catch (e) {
+        console.error("Erro ao carregar do servidor, utilizando imagens padrão:", e);
+        setItens(imagensPadraoFallback);
       } finally {
         setLoading(false);
       }
     }
-    carregarMateriais();
+    carregarKit();
   }, []);
 
-  // Auxiliares de identificação de tipo de arquivo
+  const datasDisponiveis = Array.from(new Set(itens.map((i) => i.dataUpload))).sort().reverse();
+
+  const itensFiltrados = itens.filter((i) => {
+    if (dataFiltro === "todas") return true;
+    return i.dataUpload === dataFiltro;
+  });
+
   const isVideoItem = (item: ItemKit) => {
     const ext = item.url.split(".").pop()?.toLowerCase();
     return (
@@ -53,370 +74,345 @@ export default function KitCorretorPage() {
     );
   };
 
-  // Datas e Filtros
-  const datasDisponiveis = Array.from(new Set(itens.map((i) => i.dataUpload)));
-
-  const itensFiltrados = itens.filter((item) => {
-    if (dataFiltro === "todas") return true;
-    return item.dataUpload === dataFiltro;
-  });
-
-  // Localização Inteligente dos Arquivos para os Botões
-  const zipFile = itensFiltrados.find(
-    (i) =>
-      i.categoria === "pacote_zip" ||
-      i.url.toLowerCase().endsWith(".zip") ||
-      i.url.toLowerCase().endsWith(".rar") ||
-      i.nome.toLowerCase().endsWith(".zip") ||
-      i.nome.toLowerCase().endsWith(".rar")
-  );
-
-  const laminasPdf = itensFiltrados.filter((i) => i.categoria === "lamina_pdf");
+  const pacotesZip = itensFiltrados.filter((i) => i.categoria === "pacote_zip" || i.url.toLowerCase().endsWith(".zip"));
+  const laminasPdf = itensFiltrados.filter((i) => i.categoria === "lamina_pdf" || i.url.toLowerCase().endsWith(".pdf"));
   const videos = itensFiltrados.filter(isVideoItem);
-  const imagens = itensFiltrados.filter(isImageItem);
+  const imagensAvulsas = itensFiltrados.filter(isImageItem);
 
-  const laminaPrincipalPdf = laminasPdf[0];
-  const videoPrincipalMp4 = videos[0];
+  // Função para agrupar e baixar os arquivos automaticamente em formato ZIP
+  const handleBaixarZipAutomatico = async (arquivosParaZip: ItemKit[], nomeArquivoZip: string) => {
+    if (arquivosParaZip.length === 0) return;
+
+    // 1. Se já existe um pacote .ZIP cadastrado pelo Admin para esta data, baixa diretamente
+    const zipExistente = arquivosParaZip.find((i) => i.categoria === "pacote_zip" || i.url.toLowerCase().endsWith(".zip"));
+    if (zipExistente) {
+      const a = document.createElement("a");
+      a.href = zipExistente.url;
+      a.download = zipExistente.nome;
+      a.target = "_blank";
+      a.click();
+      return;
+    }
+
+    // 2. Criação dinâmica do arquivo .ZIP usando JSZip
+    setDownloadingZip(true);
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+
+      await Promise.all(
+        arquivosParaZip.map(async (item) => {
+          try {
+            const response = await fetch(item.url);
+            const blob = await response.blob();
+            zip.file(item.nome, blob);
+          } catch (err) {
+            console.error(`Erro ao incluir arquivo ${item.nome} no ZIP:`, err);
+          }
+        })
+      );
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nomeArquivoZip;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Iniciando download dos arquivos individualmente:", err);
+      arquivosParaZip.forEach((file) => {
+        const a = document.createElement("a");
+        a.href = file.url;
+        a.download = file.nome;
+        a.target = "_blank";
+        a.click();
+      });
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between font-sans">
+    <main className="min-h-screen bg-gray-50 flex flex-col justify-between font-sans">
+      
       <div>
-        {/* BANNER SUPERIOR DE MARCA */}
-        <header className="w-full relative z-10 pt-10 sm:pt-14 bg-[#a96190] pb-8 flex items-center justify-center shadow-sm">
-          <div className="relative w-64 sm:w-80 md:w-96 h-20 sm:h-24">
+        {/* BANNER SUPERIOR NOVAL CALIFÓRNIA (TESTEIRA FULL WIDTH) */}
+        <div className="w-full relative z-10 pt-16 sm:pt-0 bg-[#a96190]">
+          <div className="relative w-full max-w-[1920px] mx-auto">
             <Image
-              src="/img/LogoNovaCalifornia_Horiz.png"
-              alt="Logo Nova Califórnia"
-              fill
-              className="object-contain"
+              src="/img/testeiranc.jpg"
+              alt="Kit Corretor Nova Califórnia"
+              width={1920}
+              height={350}
+              quality={100}
+              className="w-full h-auto block object-cover"
               priority
+              onError={(e) => {
+                // Fallback caso a imagem testeira.jpg ainda não tenha sido colocada em public/img
+                (e.target as HTMLElement).style.display = "none";
+              }}
             />
           </div>
-        </header>
+        </div>
 
-        {/* ÁREA DE CONTEÚDO PRINCIPAL */}
-        <div className="max-w-[1140px] mx-auto px-4 sm:px-6 py-12 w-full">
+        {/* CONTEÚDO PRINCIPAL */}
+        <div className="max-w-[1200px] mx-auto px-6 py-12">
           
-          {/* TÍTULO E SUBTÍTULO CENTRALIZADOS */}
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h1 className="text-3xl sm:text-4xl font-black text-[#1E293B] tracking-tight uppercase mb-3">
-              KIT CORRETOR
+          <div className="mb-12 text-center">
+            <h1 className="text-3xl md:text-5xl font-black text-[#1E293B] uppercase tracking-tight mb-4">
+              Kit Corretor
             </h1>
-            <p className="text-sm sm:text-base text-gray-500 font-medium leading-relaxed">
+            <p className="text-gray-600 text-base max-w-2xl mx-auto">
               Reunimos todo o conteúdo de apoio em um só lugar para você ter sempre à mão. Use sem moderação!
             </p>
+          </div>
 
-            {/* SELETOR DE VERSÃO POR DATA */}
-            {datasDisponiveis.length > 0 && (
-              <div className="mt-6 inline-flex items-center gap-2.5 bg-white border border-gray-200/80 px-4 py-2 rounded-2xl shadow-sm">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Versão:</label>
-                <select
-                  value={dataFiltro}
-                  onChange={(e) => setDataFiltro(e.target.value)}
-                  className="bg-transparent text-xs font-black text-[#1E293B] focus:outline-none cursor-pointer"
+          {/* BOTÃO DE DOWNLOAD TOTAL (ZIP AUTOMÁTICO DE TODOS OS ARQUIVOS DA DATA) */}
+          {itensFiltrados.length > 0 && (
+            <div className="mb-10 text-center bg-white p-8 rounded-2xl shadow-sm border border-gray-200 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="text-center sm:text-left">
+                <span className="bg-[#1E293B]/10 text-[#1E293B] text-xs font-bold uppercase px-3 py-1 rounded-full">
+                  Download Completo
+                </span>
+                <h2 className="text-xl md:text-2xl font-black text-gray-800 mt-2">
+                  Baixar Todo o Kit de Vendas
+                </h2>
+                <p className="text-xs text-gray-500">Inclui todas as imagens HD, lâmina comercial e vídeos em 1 só arquivo.</p>
+              </div>
+              
+              <button
+                onClick={() => handleBaixarZipAutomatico(itensFiltrados, `Nova_California_Kit_Completo_${dataFiltro}.zip`)}
+                disabled={downloadingZip}
+                className="w-full sm:w-auto bg-[#a96190] hover:bg-[#8e4f78] disabled:bg-gray-400 text-white font-black py-4 px-8 rounded-full shadow-lg hover:scale-105 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-3 cursor-pointer whitespace-nowrap"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {downloadingZip ? "Gerando ZIP..." : "Baixar Kit Completo (.ZIP)"}
+              </button>
+            </div>
+          )}
+
+          {/* BOXES DE DOWNLOADS SEPARADOS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Box 1: IMAGENS (ZIP DE TODAS AS IMAGENS) */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Imagens e Perspectivas</h3>
+              <p className="text-sm text-gray-500 mb-6 flex-1">Renders em alta resolução da fachada, lazer e decorado.</p>
+              
+              {imagensAvulsas.length > 0 || pacotesZip.length > 0 ? (
+                <button 
+                  onClick={() => handleBaixarZipAutomatico(pacotesZip.length > 0 ? pacotesZip : imagensAvulsas, `Nova_California_Imagens_${dataFiltro}.zip`)}
+                  disabled={downloadingZip}
+                  className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4f78] transition-colors text-sm text-center cursor-pointer"
                 >
-                  <option value="todas">Todas as Versões</option>
-                  {datasDisponiveis.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
+                  Baixar Pacote (.ZIP)
+                </button>
+              ) : (
+                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
+                  Indisponível
+                </button>
+              )}
+            </div>
+
+            {/* Box 2: LÂMINA PDF */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Lâmina e Plantas</h3>
+              <p className="text-sm text-gray-500 mb-6 flex-1">Apresentação comercial e todas as plantas baixas cotadas.</p>
+              
+              {laminasPdf.length > 0 ? (
+                <a 
+                  href={laminasPdf[0].url} 
+                  download 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4f78] transition-colors text-sm text-center cursor-pointer block"
+                >
+                  Baixar Caderno (.PDF)
+                </a>
+              ) : (
+                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
+                  Indisponível
+                </button>
+              )}
+            </div>
+
+            {/* Box 3: VÍDEOS */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Vídeos e Reels</h3>
+              <p className="text-sm text-gray-500 mb-6 flex-1">Vídeos promocionais prontos para postar no Instagram e WhatsApp.</p>
+              
+              {videos.length > 0 ? (
+                <a 
+                  href={videos[0].url} 
+                  download 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-full bg-[#1E293B] text-white font-bold py-3 rounded-full hover:bg-[#0f172a] transition-colors text-sm text-center cursor-pointer block"
+                >
+                  Baixar Vídeos (.MP4)
+                </a>
+              ) : (
+                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
+                  Indisponível
+                </button>
+              )}
+            </div>
+
+          </div>
+
+          {/* GALERIA DE IMAGENS AVULSAS (PROPORÇÃO 9:16) */}
+          <div className="mt-20 border-t border-gray-200 pt-16">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-10">
+              <div className="text-center sm:text-left">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#1E293B] uppercase tracking-wide">
+                  Imagens Avulsas
+                </h2>
+                <p className="text-gray-500 text-sm">Baixe perspectivas individuais diretamente para o seu dispositivo.</p>
+              </div>
+
+              {datasDisponiveis.length > 0 && (
+                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                  <span className="text-xs font-bold text-gray-600">Histórico de Atualizações:</span>
+                  <select
+                    value={dataFiltro}
+                    onChange={(e) => setDataFiltro(e.target.value)}
+                    className="text-xs font-bold text-[#1E293B] bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value="todas">Exibir Todas as Datas</option>
+                    {datasDisponiveis.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {loading ? (
+              <p className="text-center py-10 text-gray-400 font-medium">Carregando imagens...</p>
+            ) : imagensAvulsas.length === 0 ? (
+              <p className="text-center py-10 text-gray-400 font-medium">Nenhuma imagem avulsa encontrada para esta data.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                {imagensAvulsas.map((img) => (
+                  <div key={img.id} className="group relative aspect-[9/16] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-200 bg-gray-100">
+                    <Image
+                      src={img.url}
+                      alt={img.nome}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4">
+                      <span className="text-white font-bold mb-4 text-center text-xs md:text-sm px-2 truncate w-full">
+                        {img.nome}
+                      </span>
+                      <a
+                        href={img.url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#a96190] text-white p-3 rounded-full hover:bg-white hover:text-[#a96190] transition-colors transform hover:scale-110 shadow-lg"
+                        title={`Baixar ${img.nome}`}
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-
-          {loading ? (
-            <div className="text-center py-24">
-              <div className="w-12 h-12 border-4 border-[#a96190] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-sm font-semibold text-gray-500">Carregando acervo do kit corretor...</p>
-            </div>
-          ) : (
-            <div className="space-y-12">
-
-              {/* CARD DESTAQUE TOP: DOWNLOAD COMPLETO */}
-              <div className="max-w-3xl mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="text-center md:text-left">
-                  <span className="bg-gray-100 text-gray-600 text-[10px] font-bold uppercase px-3 py-1 rounded-full inline-block mb-3 tracking-wider">
-                    DOWNLOAD COMPLETO
-                  </span>
-                  <h2 className="text-xl sm:text-2xl font-black text-[#1E293B] mb-1">
-                    Baixar Todo o Kit de Vendas
-                  </h2>
-                  <p className="text-xs text-gray-500 max-w-md">
-                    Inclui todas as imagens HD, lâmina comercial e vídeos em 1 só arquivo.
-                  </p>
-                </div>
-
-                {zipFile ? (
-                  <a
-                    href={zipFile.url}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold text-xs px-6 py-3.5 rounded-full transition-all shadow-md hover:shadow-lg uppercase tracking-wider flex items-center justify-center gap-2 whitespace-nowrap w-full md:w-auto cursor-pointer"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    BAIXAR KIT COMPLETO (.ZIP)
-                  </a>
-                ) : (
-                  <div className="w-full md:w-auto bg-gray-100 text-gray-400 font-bold text-xs py-3.5 px-8 rounded-full text-center uppercase tracking-wider cursor-not-allowed select-none">
-                    Indisponível
-                  </div>
-                )}
-              </div>
-
-              {/* GRID DOS 3 CARDS PRINCIPAIS */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                
-                {/* CARD 1: IMAGENS E PERSPECTIVAS */}
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center justify-between">
-                  <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 rounded-full bg-gray-100 text-[#1E293B] flex items-center justify-center mb-6">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-base font-bold text-[#1E293B] mb-2">
-                      Imagens e Perspectivas
-                    </h3>
-                    <p className="text-xs text-gray-400 leading-relaxed mb-8 max-w-[220px]">
-                      Renders em alta resolução da fachada, lazer e decorado.
-                    </p>
-                  </div>
-
-                  {zipFile ? (
-                    <a
-                      href={zipFile.url}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold text-xs py-3 px-6 rounded-full transition-all text-center uppercase tracking-wider block shadow-sm cursor-pointer"
-                    >
-                      BAIXAR PACOTE (.ZIP)
-                    </a>
-                  ) : (
-                    <div className="w-full bg-gray-200/70 text-gray-400 font-bold text-xs py-3 px-6 rounded-full text-center uppercase tracking-wider cursor-not-allowed select-none">
-                      Indisponível
-                    </div>
-                  )}
-                </div>
-
-                {/* CARD 2: LÂMINA E PLANTAS */}
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center justify-between">
-                  <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 rounded-full bg-gray-100 text-[#1E293B] flex items-center justify-center mb-6">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-base font-bold text-[#1E293B] mb-2">
-                      Lâmina e Plantas
-                    </h3>
-                    <p className="text-xs text-gray-400 leading-relaxed mb-8 max-w-[220px]">
-                      Apresentação comercial e todas as plantas baixas cotadas.
-                    </p>
-                  </div>
-
-                  {laminaPrincipalPdf ? (
-                    <a
-                      href={laminaPrincipalPdf.url}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold text-xs py-3 px-6 rounded-full transition-all text-center uppercase tracking-wider block shadow-sm cursor-pointer"
-                    >
-                      BAIXAR LÂMINA (.PDF)
-                    </a>
-                  ) : (
-                    <div className="w-full bg-gray-200/70 text-gray-400 font-bold text-xs py-3 px-6 rounded-full text-center uppercase tracking-wider cursor-not-allowed select-none">
-                      Indisponível
-                    </div>
-                  )}
-                </div>
-
-                {/* CARD 3: VÍDEOS E REELS */}
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center justify-between">
-                  <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 rounded-full bg-gray-100 text-[#1E293B] flex items-center justify-center mb-6">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-base font-bold text-[#1E293B] mb-2">
-                      Vídeos e Reels
-                    </h3>
-                    <p className="text-xs text-gray-400 leading-relaxed mb-8 max-w-[220px]">
-                      Vídeos promocionais prontos para postar no Instagram e WhatsApp.
-                    </p>
-                  </div>
-
-                  {videoPrincipalMp4 ? (
-                    <a
-                      href={videoPrincipalMp4.url}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-[#1E293B] hover:bg-black text-white font-bold text-xs py-3 px-6 rounded-full transition-all text-center uppercase tracking-wider block shadow-sm cursor-pointer"
-                    >
-                      BAIXAR VÍDEOS (.MP4)
-                    </a>
-                  ) : (
-                    <div className="w-full bg-gray-200/70 text-gray-400 font-bold text-xs py-3 px-6 rounded-full text-center uppercase tracking-wider cursor-not-allowed select-none">
-                      Indisponível
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-              {/* ================= SEÇÃO DETALHADA DE VISUALIZAÇÃO E PLAYERS ================= */}
-
-              {/* 1. SEÇÃO DE VÍDEOS COM PLAYER */}
-              {videos.length > 0 && (
-                <section id="secao-videos" className="pt-12 border-t border-gray-200/60 max-w-5xl mx-auto">
-                  <div className="mb-6">
-                    <h3 className="text-xl font-black text-[#1E293B] uppercase tracking-wide">
-                      Vídeos e Reels ({videos.length})
-                    </h3>
-                    <p className="text-xs text-gray-500">Assista diretamente ou faça o download individual em alta definição.</p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {videos.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between"
-                      >
-                        <div className="relative aspect-[9/16] max-h-[380px] w-full bg-black flex items-center justify-center">
-                          <video
-                            src={item.url}
-                            controls
-                            preload="metadata"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-
-                        <div className="p-5 flex flex-col justify-between flex-1">
-                          <div className="mb-4">
-                            <span className="bg-purple-50 text-[#a96190] text-[10px] font-black uppercase px-2.5 py-1 rounded-full inline-block mb-2">
-                              MP4 • {item.tamanho}
-                            </span>
-                            <p className="font-bold text-xs text-gray-800 truncate" title={item.nome}>
-                              {item.nome}
-                            </p>
-                          </div>
-
-                          <a
-                            href={item.url}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold py-3 px-4 rounded-xl text-center transition-colors uppercase tracking-wider block shadow-sm cursor-pointer"
-                          >
-                            Baixar Vídeo
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* 2. SEÇÃO DE LÂMINAS PDF */}
-              {laminasPdf.length > 0 && (
-                <section id="secao-laminas" className="pt-12 border-t border-gray-200/60 max-w-5xl mx-auto">
-                  <div className="mb-6">
-                    <h3 className="text-xl font-black text-[#1E293B] uppercase tracking-wide">
-                      Lâmina e Plantas ({laminasPdf.length})
-                    </h3>
-                    <p className="text-xs text-gray-500">Apresentações comerciais e documentação técnica em PDF.</p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {laminasPdf.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between"
-                      >
-                        <div>
-                          <span className="bg-red-50 text-red-600 text-[10px] font-black uppercase px-3 py-1 rounded-full inline-block mb-3">
-                            PDF • {item.tamanho}
-                          </span>
-                          <h4 className="font-bold text-sm text-gray-800 break-words mb-6">
-                            {item.nome}
-                          </h4>
-                        </div>
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full bg-[#1E293B] hover:bg-black text-white text-xs font-bold py-3 px-4 rounded-xl text-center transition-colors uppercase tracking-wider block cursor-pointer"
-                        >
-                          Visualizar / Baixar PDF
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* 3. SEÇÃO DE IMAGENS AVULSAS */}
-              {imagens.length > 0 && (
-                <section id="secao-imagens" className="pt-12 border-t border-gray-200/60 max-w-5xl mx-auto">
-                  <div className="mb-6">
-                    <h3 className="text-xl font-black text-[#1E293B] uppercase tracking-wide">
-                      Imagens e Perspectivas ({imagens.length})
-                    </h3>
-                    <p className="text-xs text-gray-500">Perspectivas artísticas individuais em alta resolução.</p>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-                    {imagens.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between group"
-                      >
-                        <div className="relative aspect-[3/4] w-full bg-gray-100 overflow-hidden">
-                          <Image
-                            src={item.url}
-                            alt={item.nome}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <p className="text-[11px] font-bold text-gray-700 truncate mb-3" title={item.nome}>
-                            {item.nome}
-                          </p>
-                          <a
-                            href={item.url}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full bg-gray-100 hover:bg-[#a96190] hover:text-white text-[#1E293B] text-[11px] font-bold py-2.5 px-2 rounded-xl text-center transition-colors uppercase tracking-wider block cursor-pointer"
-                          >
-                            Baixar Imagem
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-            </div>
-          )}
+          
         </div>
       </div>
 
-      {/* RODAPÉ */}
-      <footer className="w-full bg-white border-t border-gray-200/80 py-6 px-4 text-center mt-16">
-        <p className="text-xs font-bold text-[#a96190]">
-          Quattro Inc © 2026 Nova Califórnia | Kit Corretor Oficial
-        </p>
-      </footer>
+      {/* RODAPÉ E CONTATOS NOVA CALIFÓRNIA */}
+      <div className="w-full mt-16 md:mt-24 flex flex-col">
+        
+        {/* Bloco de Informações - Roxo Principal (#a96190) */}
+        <div className="w-full bg-[#a96190] py-16 px-6 text-center text-white">
+          <div className="max-w-3xl mx-auto flex flex-col items-center">
+            
+            {/* LOGO NOVA CALIFÓRNIA HORIZONTAL BRANCA */}
+            <div className="relative w-56 sm:w-72 h-16 md:h-20 mb-4">
+              <Image
+                src="/img/LogoNovaCalifornia_Horiz.png"
+                alt="Logo Nova Califórnia"
+                fill
+                className="object-contain brightness-0 invert"
+              />
+            </div>
+
+            <p className="text-white/95 mb-8 text-sm md:text-base max-w-lg font-medium">
+              Acompanhe nossas comunicações e acesse o site para ficar por dentro de todas as novidades, plantas e materiais de divulgação!
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+              {/* Botão Site */}
+              <a
+                href="https://www.novacalifornia.com.br"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#1E293B] hover:bg-black text-white px-8 py-3.5 rounded-full font-bold text-sm transition-all shadow-lg flex items-center gap-2 hover:scale-105"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                Acessar Site Oficial
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Imagem do Rodapé - Full Width */}
+        <div className="w-full relative bg-[#fbd668]">
+          <Image
+            src="/img/rodapé_corretor.jpg"
+            alt="Nova Califórnia Rodapé"
+            width={1920}
+            height={600}
+            quality={100}
+            className="w-full h-auto block object-cover"
+            priority
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = "none";
+            }}
+          />
+        </div>
+
+        {/* BARRA DE DIREITOS */}
+        <div className="w-full bg-[#ffffff] py-8 px-6 text-center text-[#a96190] relative z-10 border-t border-gray-100">
+          <p className="text-xs sm:text-sm font-bold tracking-wide">
+            Quattro Inc © 2026 Nova Califórnia | Termos de Uso e Política de Privacidade
+          </p>
+        </div>
+      </div>
+
     </main>
   );
 }
