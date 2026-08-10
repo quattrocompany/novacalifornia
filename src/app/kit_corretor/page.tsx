@@ -452,7 +452,7 @@ export default function KitCorretorPage() {
         {/* Imagem do Rodapé - Full Width */}
         <div className="w-full relative">
           <Image
-            src="/img/rodapé_corretor.jpg"
+            src="/img/rodap_corretornc.jpg"
             alt="Nova Califórnia Rodapé"
             width={1920}
             height={600}
