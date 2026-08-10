@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 
-// Lista de pontos de interesse de fácil personalização
+interface SecaoMobilidadeUrbanaProps {
+  onOpenWhatsapp?: () => void;
+}
+
 const pontosInteresse = [
   {
     src: "/img/localizacao/01.jpg",
@@ -30,31 +33,36 @@ const pontosInteresse = [
   },
 ];
 
-export default function SecaoMobilidadeUrbana() {
+export default function SecaoMobilidadeUrbana({ onOpenWhatsapp }: SecaoMobilidadeUrbanaProps) {
   const enderecoPlantao = "Estr. Dr. Cícero Borges de Moraes, 1440 - Jardim Regina Alice, Barueri - SP, 06407-000";
   const linkGoogleMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoPlantao)}`;
   const linkWaze = `https://waze.com/ul?q=${encodeURIComponent(enderecoPlantao)}&navigate=yes`;
-  const whatsappNumber = "5511971200175";
+
+  const handleWhatsappClick = () => {
+    if (onOpenWhatsapp) {
+      onOpenWhatsapp();
+    } else if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("openWhatsAppModal"));
+    }
+  };
 
   return (
     <section id="localizacao" className="w-full bg-white pt-12 sm:pt-16 pb-0 overflow-hidden">
       
       {/* ================= PRIMEIRA PARTE: INFRAESTRUTURA DA REGIÃO ================= */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 mb-12 sm:mb-16">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 mb-12 sm:mb-16">
         
-        {/* Título da Seção */}
         <h2 
-          className="text-[#a96190] font-medium text-center text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase tracking-wider mb-8 sm:mb-12 max-w-4xl mx-auto drop-shadow-sm"
+          className="text-[#a96190] font-medium text-center text-lg sm:text-xl md:text-3xl lg:text-4xl uppercase tracking-wider mb-8 sm:mb-12 max-w-4xl mx-auto drop-shadow-sm"
           style={{ fontFamily: "geometrica-sans-bold, sans-serif" }}
         >
           UMA REGIÃO COMPLETA, SERVIDA DE AMPLA E DIVERSIFICADA INFRAESTRUTURA DE COMÉRCIO E SERVIÇOS.
         </h2>
 
-        {/* Grade de Imagens (3 Colunas no Desktop, 2 no Tablet e 1 no Mobile) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {pontosInteresse.map((ponto, index) => (
             <div key={index} className="flex flex-col items-center group">
-              <div className="relative w-full h-[200px] sm:h-[220px] md:h-[240px] rounded-xl overflow-hidden shadow-sm bg-gray-100 mb-3 border border-gray-100">
+              <div className="relative w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[280px] rounded-xl overflow-hidden shadow-sm bg-gray-100 mb-3 border border-gray-100">
                 <Image
                   src={ponto.src}
                   alt={ponto.title}
@@ -73,7 +81,7 @@ export default function SecaoMobilidadeUrbana() {
       </div>
 
       {/* ================= SEGUNDA PARTE: VISITE O DECORADO & MAPA ================= */}
-      <div className="w-full">
+      <div id="mapa-decorado" className="w-full scroll-mt-20">
         
         {/* Faixa Roxa do Título */}
         <div className="w-full bg-[#a96190] py-6 px-4 text-center text-white">
@@ -103,10 +111,9 @@ export default function SecaoMobilidadeUrbana() {
           />
         </div>
 
-        {/* Botões de Ação (Waze e Ver Mapa Ampliado) */}
+        {/* Botões de Ação */}
         <div className="bg-white py-6 px-4">
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto mb-8">
-            {/* Botão Waze */}
             <a
               href={linkWaze}
               target="_blank"
@@ -119,7 +126,6 @@ export default function SecaoMobilidadeUrbana() {
               Veja pelo Waze
             </a>
 
-            {/* Botão Google Maps Ampliado */}
             <a
               href={linkGoogleMaps}
               target="_blank"
@@ -133,13 +139,12 @@ export default function SecaoMobilidadeUrbana() {
             </a>
           </div>
 
-          {/* Chamada para o WhatsApp de Atendimento */}
           <div className="flex items-center justify-center gap-3 py-2">
-            <a
-              href={`https://wa.me/${whatsappNumber}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 sm:gap-3 group transition-transform hover:scale-105"
+            <button
+              type="button"
+              onClick={handleWhatsappClick}
+              className="flex items-center gap-2 sm:gap-3 group transition-transform hover:scale-105 cursor-pointer focus:outline-none"
+              aria-label="Abrir formulário de atendimento via WhatsApp"
             >
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-md group-hover:shadow-lg">
                 <svg className="w-6 h-6 sm:w-7 sm:h-7 fill-current" viewBox="0 0 24 24">
@@ -150,7 +155,7 @@ export default function SecaoMobilidadeUrbana() {
                 <span className="text-base sm:text-lg font-bold align-super mr-1">11</span>
                 97120.0175
               </span>
-            </a>
+            </button>
           </div>
         </div>
 

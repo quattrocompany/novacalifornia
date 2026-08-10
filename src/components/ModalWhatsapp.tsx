@@ -14,7 +14,6 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
 
   if (!isOpen) return null;
 
-  // Máscara dinâmica para WhatsApp
   const maskPhone = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
     if (!digits) return "";
@@ -61,7 +60,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
         }),
       });
     } catch (err) {
-      console.error("Erro ao salvar lead:", err);
+      console.error("Erro ao salvar lead no Supabase:", err);
     }
 
     if (typeof window !== "undefined" && (window as any).dataLayer) {
@@ -71,7 +70,6 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
       });
     }
 
-    // Número oficial do Nova Califórnia do HTML: 11 97120.0175
     const mensagemTexto = encodeURIComponent(`Olá! Meu nome é ${formData.name}. Gostaria de mais informações sobre o Nova Califórnia Barueri.`);
     const waUrl = `https://api.whatsapp.com/send?phone=5511971200175&text=${mensagemTexto}`;
 

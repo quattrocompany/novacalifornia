@@ -65,16 +65,28 @@ export default function KitCorretorPage() {
     <main className="min-h-screen bg-gray-50 flex flex-col justify-between">
       
       <div>
-        {/* BANNER SUPERIOR NOVA CALIFÓRNIA */}
-        <div className="w-full relative z-10 pt-16 sm:pt-0 bg-[#a96190]">
-          <div className="relative w-full max-w-[1920px] mx-auto">
+        {/* BANNER SUPERIOR NOVA CALIFÓRNIA COM BLUR E ENQUADRADO EM 1440PX */}
+        <div className="w-full relative overflow-hidden bg-[#a96190]">
+          {/* Fundo Desfocado (Preenche telas ultrawide sem esticar o banner) */}
+          <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+            <Image
+              src="/img/hero.jpg"
+              alt="Fundo Desfocado Banner"
+              fill
+              quality={30}
+              className="object-cover w-full h-full blur-2xl scale-110 brightness-95 opacity-80"
+            />
+          </div>
+
+          {/* Banner Principal Enquadrado em 1440px */}
+          <div className="relative z-10 w-full max-w-[1440px] mx-auto pt-16 sm:pt-0">
             <Image
               src="/img/hero.jpg"
               alt="Kit Corretor Nova Califórnia"
-              width={1920}
+              width={1440}
               height={350}
               quality={100}
-              className="w-full h-auto block object-cover"
+              className="w-full h-auto block object-contain drop-shadow-sm"
               priority
             />
           </div>

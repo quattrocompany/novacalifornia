@@ -38,12 +38,12 @@ export default function SecaoImplantacao() {
   return (
     <section id="implantacao" className="relative w-full pt-12 sm:pt-16 pb-48 sm:pb-60 md:pb-64 lg:pb-16 bg-white overflow-hidden">
       
-      {/* Contêiner do Conteúdo Centralizado */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 relative z-10">
+      {/* Contêiner do Conteúdo Alinhado com o Restante do Site (1440px) */}
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 relative z-10">
         
-        {/* Título da Seção com Fonte geometrica-sans-bold */}
+        {/* Título da Seção */}
         <h2 
-          className="text-[#0052a5] font-medium text-center text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase tracking-wider mb-8 drop-shadow-sm max-w-4xl mx-auto"
+          className="text-[#0052a5] font-medium text-center text-lg sm:text-xl md:text-3xl lg:text-4xl uppercase tracking-wider mb-8 drop-shadow-sm max-w-4xl mx-auto"
           style={{ fontFamily: "geometrica-sans-bold, sans-serif" }}
         >
           INTERATIVIDADE, SEGURANÇA E PRIVACIDADE EM UM PROJETO ESPECIAL.
@@ -58,8 +58,8 @@ export default function SecaoImplantacao() {
           <Image
             src="/img/implantacao.jpg"
             alt="Planta de Implantação do Empreendimento Nova Califórnia"
-            width={1200}
-            height={700}
+            width={1440}
+            height={840}
             quality={100}
             className="w-full h-auto object-contain block transition-transform duration-300 group-hover:scale-[1.01]"
             priority
@@ -121,7 +121,7 @@ export default function SecaoImplantacao() {
 
       {/* ================= CACHORRINHO RESPONSIVO COLADO 100% NO BOTTOM E À DIREITA ================= */}
       <div className="absolute right-0 bottom-0 z-20 flex items-end justify-end pointer-events-none">
-        <div className="relative z-10 w-[420px] sm:w-[280px] md:w-[340px] lg:w-[380px] xl:w-[440px] mb-0 mr-0 leading-none">
+        <div className="relative z-10 w-[240px] sm:w-[280px] md:w-[340px] lg:w-[380px] xl:w-[440px] mb-0 mr-0 leading-none">
           <Image
             src="/img/cachorrinho.png"
             alt="Mascote Cachorrinho Nova Califórnia"

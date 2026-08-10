@@ -9,7 +9,7 @@ interface FooterProps {
   onOpenLgpd?: () => void;
 }
 
-export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }: FooterProps) {
+export default function Footer({ onOpenWhatsapp, onOpenPrivacidade }: FooterProps) {
   const [showStickyBar, setShowStickyBar] = useState(false);
 
   useEffect(() => {
@@ -43,61 +43,80 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
     }
   };
 
+  const handleEstandeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const mapaElement = document.getElementById("mapa-decorado") || document.getElementById("localizacao");
+    if (mapaElement) {
+      const y = mapaElement.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   return (
     <>
       <footer className="bg-white pt-12 pb-32 md:pb-40 relative z-10 w-full overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-6 md:px-12">
           
-          {/* Logos de Parcerias */}
+          {/* Logos de Parcerias (Ordem: Incorporação, Construção, Intermediação, Financiamento) */}
           <div className="border-t border-gray-200 border-b py-10 mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 items-start justify-items-center text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-8 items-center justify-items-center text-center">
               
-              {/* Intermediação */}
-              <a href="https://direcoesconsultoria.com.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
-                  INTERMEDIAÇÃO:
+              {/* 1. Incorporação (Quattro INC - COM LINK E SEM BORDA) */}
+              <a 
+                href="https://www.quattroinc.com.br/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex flex-col items-center justify-center w-full hover:opacity-80 transition-opacity"
+              >
+                <span className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider mb-4">
+                  INCORPORAÇÃO:
                 </span>
-                <div className="relative w-full max-w-[140px] sm:max-w-[180px] h-16 sm:h-20">
-                  <Image src="/img/L1.png" alt="Direções Consultoria" fill className="object-contain" />
+                <div className="relative w-full max-w-[180px] sm:max-w-[220px] md:max-w-[240px] h-20 sm:h-24">
+                  <Image src="/img/L4.png" alt="Quattro Inc" fill className="object-contain" />
                 </div>
               </a>
 
-              {/* Financiamento */}
-              <a href="https://www.caixa.gov.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
-                  FINANCIAMENTO:
-                </span>
-                <div className="relative w-full max-w-[120px] sm:max-w-[160px] h-16 sm:h-20">
-                  <Image src="/img/L2.png" alt="Caixa Econômica Federal" fill className="object-contain" />
-                </div>
-              </a>
-
-              {/* Construção */}
-              <a href="https://www.quattroconstrutora.com.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
+              {/* 2. Construção (Quattro Construtora - COM LINK) */}
+              <a 
+                href="https://www.quattroconstrutora.com.br/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex flex-col items-center justify-center w-full hover:opacity-80 transition-opacity"
+              >
+                <span className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider mb-4">
                   CONSTRUÇÃO:
                 </span>
-                <div className="relative w-full max-w-[110px] sm:max-w-[130px] h-16 sm:h-20">
+                <div className="relative w-full max-w-[140px] sm:max-w-[180px] md:max-w-[200px] h-20 sm:h-24">
                   <Image src="/img/L3.png" alt="Quattro Construtora" fill className="object-contain" />
                 </div>
               </a>
 
-              {/* Incorporação */}
-              <a href="https://www.quattroinc.com.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
-                  INCORPORAÇÃO:
+              {/* 3. Intermediação (Direções - SEM LINK) */}
+              <div className="flex flex-col items-center justify-center w-full">
+                <span className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider mb-4">
+                  INTERMEDIAÇÃO:
                 </span>
-                <div className="relative w-full max-w-[140px] sm:max-w-[180px] h-16 sm:h-20">
-                  <Image src="/img/L4.png" alt="Quattro Inc" fill className="object-contain" />
+                <div className="relative w-full max-w-[180px] sm:max-w-[220px] md:max-w-[240px] h-20 sm:h-24">
+                  <Image src="/img/L1.png" alt="Direções Consultoria" fill className="object-contain" />
                 </div>
-              </a>
+              </div>
+
+              {/* 4. Financiamento (Caixa - SEM LINK) */}
+              <div className="flex flex-col items-center justify-center w-full">
+                <span className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider mb-4">
+                  FINANCIAMENTO:
+                </span>
+                <div className="relative w-full max-w-[160px] sm:max-w-[200px] md:max-w-[220px] h-20 sm:h-24">
+                  <Image src="/img/L2.png" alt="Caixa Econômica Federal" fill className="object-contain" />
+                </div>
+              </div>
 
             </div>
           </div>
 
           {/* Disclaimer Legal */}
-          <div className="mb-8">
-            <p className="text-[10px] sm:text-[11px] text-gray-400 text-justify leading-relaxed font-normal">
+          <div className="mb-8 max-w-6xl mx-auto">
+            <p className="text-[10px] sm:text-[11px] text-gray-400 text-justify sm:text-center leading-relaxed font-medium">
               R.I. na Matrícula N°154.490 no C.R.I. da Comarca de Barueri em 28/10/2025. A inclusão no Programa Minha Casa Minha vida está vinculada ao enquadramento de renda e regras do Programa, à época da assinatura do contrato de financiamento. Apesar de todo cuidado na obtenção das informações contidas neste material, elas não devem ser consideradas como parte integrante de qualquer contrato. As áreas comuns e de lazer serão entregues equipadas e decoradas de acordo com o memorial descritivo. As ilustrações, artes, fotos, mobiliário, vegetação e peças de decoração dos materiais de divulgação têm caráter exclusivamente promocional por tratar-se de bem a ser construído, sendo que as condições de comercialização projetos e especificações são aquelas dos contratos e memoriais a serem firmados com os adquirentes. A vegetação será entregue em diferentes tamanhos e portes. Fotos ilustrativas. Perspectivas artísticas. Local do empreendimento: Rua Chaves, 658 – Jardim Califórnia/ Barueri.
             </p>
           </div>
@@ -115,7 +134,7 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
         </div>
       </footer>
 
-      {/* Ícone Flutuante do WhatsApp (Verde) */}
+      {/* Ícone Flutuante do WhatsApp */}
       <a 
         href="#whatsapp"
         onClick={handleWhatsappClick}
@@ -129,7 +148,7 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
         </div>
       </a>
 
-      {/* Barra Fixa Magenta (#a96190) de Atendimento */}
+      {/* Barra Fixa Magenta de Atendimento */}
       <div 
         className={`fixed bottom-0 left-0 w-full z-50 bg-[#a96190] shadow-[0_-10px_30px_rgba(0,0,0,0.3)] transition-transform duration-500 ease-in-out ${
           showStickyBar ? "translate-y-0 rounded-t-3xl md:rounded-none" : "translate-y-full"
@@ -160,8 +179,9 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
           </a>
 
           <a 
-            href="#localizacao" 
-            className="flex-1 flex items-center justify-center gap-3 text-white hover:bg-white/10 transition-colors py-4 md:py-0 group px-2"
+            href="#mapa-decorado" 
+            onClick={handleEstandeClick}
+            className="flex-1 flex items-center justify-center gap-3 text-white hover:bg-white/10 transition-colors py-4 md:py-0 group px-2 cursor-pointer"
           >
             <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

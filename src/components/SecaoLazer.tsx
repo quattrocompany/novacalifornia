@@ -40,26 +40,27 @@ export default function SecaoLazer() {
   };
 
   return (
-    <section id="lazer" className="relative w-full py-12 sm:py-16 md:py-24 overflow-hidden">
+    <section id="lazer" className="relative w-full py-10 sm:py-16 md:py-24 overflow-hidden bg-white">
       
-      {/* Fundo Full Width (Bolinhas) preenchendo toda a seção */}
+      {/* Fundo de Bolinhas */}
       <div 
-        className="absolute inset-0 w-full h-full pointer-events-none bg-no-repeat bg-cover bg-left-top z-0"
+        className="absolute inset-0 w-full h-full pointer-events-none bg-no-repeat bg-cover sm:bg-[size:280px_auto] md:bg-cover bg-left-top z-0 opacity-30 sm:opacity-100"
         style={{ backgroundImage: "url('/img/fundo7.jpg')" }}
       />
 
-      {/* Contêiner Geral para delimitar o Carrossel e alinhar o Título */}
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 relative z-10">
+      {/* Contêiner Geral - Ajustado para max-w-[1440px] e px-6 md:px-12 alinhado com o site */}
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 relative z-10">
         
         {/* Título da Seção */}
         <h2 
-          className="text-[#9f59d1] font-medium text-center text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase tracking-wider mb-8 drop-shadow-sm max-w-4xl mx-auto"
+          className="text-[#9f59d1] font-medium text-center text-base sm:text-xl md:text-3xl lg:text-4xl uppercase tracking-wider mb-6 sm:mb-10 max-w-4xl mx-auto px-2 sm:px-4 drop-shadow-sm"
           style={{ fontFamily: "geometrica-sans-bold, sans-serif" }}
-        >          DESFRUTE DE UM VERDADEIRO CLUBE COM INÚMERAS OPÇÕES DE LAZER.
+        >
+          DESFRUTE DE UM VERDADEIRO CLUBE COM INÚMERAS OPÇÕES DE LAZER.
         </h2>
 
-        {/* Carrossel Blocado (Limitado em largura e sem sombras) */}
-        <div className="relative w-full max-w-[1100px] mx-auto h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-gray-100 group">
+        {/* Carrossel Blocado expandido para preencher até 1440px no desktop */}
+        <div className="relative w-full max-w-[1440px] mx-auto h-[280px] xs:h-[340px] sm:h-[480px] md:h-[600px] lg:h-[700px] xl:h-[760px] overflow-hidden bg-gray-100 group shadow-sm">
           
           {slidesLazer.map((slide, index) => (
             <div
@@ -82,7 +83,7 @@ export default function SecaoLazer() {
           {/* Seta Esquerda */}
           <button
             onClick={prevSlide}
-            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2.5 sm:p-3.5 backdrop-blur-sm transition-all hover:scale-105"
+            className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-20 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2 sm:p-3.5 backdrop-blur-sm transition-all hover:scale-105 cursor-pointer"
             aria-label="Imagem anterior"
           >
             <svg className="w-5 h-5 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +94,7 @@ export default function SecaoLazer() {
           {/* Seta Direita */}
           <button
             onClick={nextSlide}
-            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2.5 sm:p-3.5 backdrop-blur-sm transition-all hover:scale-105"
+            className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-20 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2 sm:p-3.5 backdrop-blur-sm transition-all hover:scale-105 cursor-pointer"
             aria-label="Próxima imagem"
           >
             <svg className="w-5 h-5 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,15 +103,15 @@ export default function SecaoLazer() {
           </button>
 
           {/* Indicadores de Bolinha na Base da Imagem */}
-          <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-1.5 sm:gap-2 px-4">
+          <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-1 sm:gap-2 px-2">
             {slidesLazer.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`rounded-full transition-all ${
+                className={`rounded-full transition-all cursor-pointer ${
                   currentSlide === index
-                    ? "bg-white w-3 h-3 sm:w-3.5 sm:h-3.5 scale-110"
-                    : "bg-white/50 hover:bg-white/80 w-2 h-2 sm:w-2.5 sm:h-2.5"
+                    ? "bg-white w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 scale-110"
+                    : "bg-white/50 hover:bg-white/80 w-1.5 h-1.5 sm:w-2.5 sm:h-2.5"
                 }`}
                 aria-label={`Ver imagem ${index + 1}`}
               />
@@ -120,8 +121,8 @@ export default function SecaoLazer() {
         </div>
 
         {/* Legenda no Canto Inferior Direito do Bloco */}
-        <div className="max-w-[1100px] mx-auto flex justify-end pt-2">
-          <span className="text-[#333333] font-extrabold text-xs sm:text-sm uppercase tracking-wider">
+        <div className="w-full max-w-[1440px] mx-auto flex justify-end pt-3 px-1">
+          <span className="text-[#333333] font-extrabold text-[11px] sm:text-sm uppercase tracking-wider text-right">
             {slidesLazer[currentSlide].label}
           </span>
         </div>
