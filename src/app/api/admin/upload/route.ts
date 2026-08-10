@@ -18,28 +18,33 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-  console.log(">>> GERANDO TOKEN PARA UPLOAD DO ARQUIVO:", pathname);
+        console.log(">>> GERANDO TOKEN PARA UPLOAD DO ARQUIVO PESADO:", pathname);
 
-  return {
-    allowedContentTypes: [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-      "application/zip",
-      "application/x-zip",
-      "application/x-zip-compressed",
-      "application/octet-stream",
-      "video/mp4",
-      "video/quicktime",
-    ],
-    tokenPayload: JSON.stringify({
-      uploadedAt: new Date().toISOString(),
-      clientPayload: clientPayload || null,
-    }),
-  };
-},
+        return {
+          allowedContentTypes: [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+            "application/pdf",
+            "application/zip",
+            "application/x-zip",
+            "application/x-zip-compressed",
+            "application/octet-stream",
+            "video/mp4",
+            "video/quicktime",
+            "video/webm",
+            "video/x-msvideo",
+            "video/mpeg",
+            "video/3gpp"
+          ],
+          maximumSizeInBytes: 500 * 1024 * 1024, // Limite de 500 MB por arquivo
+          tokenPayload: JSON.stringify({
+            uploadedAt: new Date().toISOString(),
+            clientPayload: clientPayload || null,
+          }),
+        };
+      },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
         console.log(">>> UPLOAD DIRETO CONCLUÍDO NO VERCEL BLOB:", blob.url, tokenPayload);
       },

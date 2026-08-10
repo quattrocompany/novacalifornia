@@ -8,27 +8,27 @@ interface SecaoMobilidadeUrbanaProps {
 
 const pontosInteresse = [
   {
-    src: "/img/localizacao/01.jpg",
+    src: "/img/LOCALIZACAO/01.jpg",
     title: "PARQUE MUNICIPAL DOM JOSÉ",
   },
   {
-    src: "/img/localizacao/02.jpg",
+    src: "/img/LOCALIZACAO/02.jpg",
     title: "ARENA BARUERI",
   },
   {
-    src: "/img/localizacao/03.jpg",
+    src: "/img/LOCALIZACAO/03.jpg",
     title: "ASSAÍ BARUERI",
   },
   {
-    src: "/img/localizacao/04.jpg",
+    src: "/img/LOCALIZACAO/04.jpg",
     title: "PARQUE SHOPPING BARUERI",
   },
   {
-    src: "/img/localizacao/05.jpg",
+    src: "/img/LOCALIZACAO/05.jpg",
     title: "SHOPPING TAMBORÉ",
   },
   {
-    src: "/img/localizacao/06.jpg",
+    src: "/img/LOCALIZACAO/06.jpg",
     title: "RODOVIA CASTELLO BRANCO",
   },
 ];
