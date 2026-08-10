@@ -358,7 +358,7 @@ export default function KitCorretorPage() {
           <div className="max-w-3xl mx-auto flex flex-col items-center">
             
             {/* LOGO EM CÍRCULO CONFORME PADRÃO LUMINI */}
-            <div className="w-20 h-20 sm:w-24 sm:h-24  flex items-center justify-center mb-6 shadow-inner">
+            <div className="w-40 h-40 sm:w-24 sm:h-32  flex items-center justify-center mb-6">
               <div className="relative w-full h-full">
                 <Image
                   src="/img/logo350.png"
