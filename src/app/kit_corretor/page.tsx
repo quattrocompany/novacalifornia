@@ -268,7 +268,7 @@ export default function KitCorretorPage() {
               )}
             </div>
 
-            {/* Box 3: VÍDEOS (AGORA BAIXA ZIP COM TODOS OS VÍDEOS DA DATA) */}
+            {/* Box 3: VÍDEOS */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,13 +393,22 @@ export default function KitCorretorPage() {
         </div>
       </div>
 
-      {/* RODAPÉ E CONTATOS PADRÃO LUMINI / NOVA CALIFÓRNIA */}
+      {/* RODAPÉ E CONTATOS NOVA CALIFÓRNIA */}
       <div className="w-full mt-16 md:mt-24 flex flex-col">
         
         {/* Bloco de Informações - Roxo Principal (#a96190) */}
         <div className="w-full bg-[#a96190] py-14 px-6 text-center text-white">
           <div className="max-w-3xl mx-auto flex flex-col items-center">
-
+            
+            {/* LOGO SOLTA E SEM SOMBRA */}
+            <div className="relative w-48 sm:w-64 h-16 sm:h-20 mb-6">
+              <Image
+                src="/img/logo350.png"
+                alt="Logo Nova Califórnia"
+                fill
+                className="object-contain"
+              />
+            </div>
 
             <p className="text-white/95 mb-8 text-sm md:text-base max-w-lg font-medium leading-relaxed">
               Acompanhe nossas redes sociais oficiais e acesse o site para ficar por dentro de todas as novidades, campanhas e materiais de divulgação!
