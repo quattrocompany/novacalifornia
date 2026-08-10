@@ -83,7 +83,7 @@ export default function KitCorretorPage() {
   const handleBaixarZipAutomatico = async (arquivosParaZip: ItemKit[], nomeArquivoZip: string) => {
     if (arquivosParaZip.length === 0) return;
 
-    // 1. Se já existe um pacote .ZIP cadastrado pelo Admin para esta data, baixa diretamente
+    // Se já existe um pacote .ZIP cadastrado pelo Admin para esta data, baixa diretamente
     const zipExistente = arquivosParaZip.find((i) => i.categoria === "pacote_zip" || i.url.toLowerCase().endsWith(".zip"));
     if (zipExistente) {
       const a = document.createElement("a");
@@ -94,7 +94,7 @@ export default function KitCorretorPage() {
       return;
     }
 
-    // 2. Criação dinâmica do arquivo .ZIP usando JSZip
+    // Criação dinâmica do arquivo .ZIP usando JSZip
     setDownloadingZip(true);
     try {
       const JSZip = (await import("jszip")).default;
@@ -139,7 +139,7 @@ export default function KitCorretorPage() {
     <main className="min-h-screen bg-gray-50 flex flex-col justify-between font-sans">
       
       <div>
-        {/* BANNER SUPERIOR NOVA CALIFÓRNIA (TESTEIRA FULL WIDTH) */}
+        {/* BANNER SUPERIOR NOVA CALIFÓRNIA */}
         <div className="w-full relative z-10 pt-16 sm:pt-0 bg-[#a96190]">
           <div className="relative w-full max-w-[1920px] mx-auto">
             <Image
@@ -160,13 +160,31 @@ export default function KitCorretorPage() {
         {/* CONTEÚDO PRINCIPAL */}
         <div className="max-w-[1200px] mx-auto px-6 py-12">
           
+          {/* TÍTULO E FILTRO DE DATAS NO TOPO DE TUDO */}
           <div className="mb-12 text-center">
             <h1 className="text-3xl md:text-5xl font-black text-[#1E293B] uppercase tracking-tight mb-4">
               Kit Corretor
             </h1>
-            <p className="text-gray-600 text-base max-w-2xl mx-auto">
+            <p className="text-gray-600 text-base max-w-2xl mx-auto mb-6">
               Reunimos todo o conteúdo de apoio em um só lugar para você ter sempre à mão. Use sem moderação!
             </p>
+
+            {/* SELETOR DE VERSÃO POSICIONADO NO TOPO */}
+            {datasDisponiveis.length > 0 && (
+              <div className="inline-flex items-center gap-3 bg-white border border-gray-200 px-5 py-2.5 rounded-2xl shadow-sm">
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Histórico de Atualizações:</span>
+                <select
+                  value={dataFiltro}
+                  onChange={(e) => setDataFiltro(e.target.value)}
+                  className="text-xs font-bold text-[#1E293B] bg-transparent focus:outline-none cursor-pointer"
+                >
+                  <option value="todas">Exibir Todas as Datas</option>
+                  {datasDisponiveis.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* BOTÃO DE DOWNLOAD TOTAL */}
@@ -250,7 +268,7 @@ export default function KitCorretorPage() {
               )}
             </div>
 
-            {/* Box 3: VÍDEOS */}
+            {/* Box 3: VÍDEOS (AGORA BAIXA ZIP COM TODOS OS VÍDEOS DA DATA) */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,15 +280,13 @@ export default function KitCorretorPage() {
               <p className="text-sm text-gray-500 mb-6 flex-1">Vídeos promocionais prontos para postar no Instagram e WhatsApp.</p>
               
               {videos.length > 0 ? (
-                <a 
-                  href={videos[0].url} 
-                  download 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-full bg-[#1E293B] text-white font-bold py-3 rounded-full hover:bg-[#0f172a] transition-colors text-sm text-center cursor-pointer block"
+                <button 
+                  onClick={() => handleBaixarZipAutomatico(videos, `Nova_California_Videos_${dataFiltro}.zip`)}
+                  disabled={downloadingZip}
+                  className="w-full bg-[#1E293B] text-white font-bold py-3 rounded-full hover:bg-[#0f172a] transition-colors text-sm text-center cursor-pointer"
                 >
-                  Baixar Vídeos (.MP4)
-                </a>
+                  {downloadingZip ? "Gerando ZIP..." : "Baixar Vídeos (.ZIP)"}
+                </button>
               ) : (
                 <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
                   Indisponível
@@ -280,31 +296,58 @@ export default function KitCorretorPage() {
 
           </div>
 
+          {/* SEÇÃO DE VÍDEOS E REELS */}
+          <div className="mt-20 border-t border-gray-200 pt-16">
+            <div className="mb-10 text-center sm:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1E293B] uppercase tracking-wide">
+                Vídeos e Reels ({videos.length})
+              </h2>
+              <p className="text-gray-500 text-sm">Assista ou baixe vídeos promocionais diretamente em seu dispositivo.</p>
+            </div>
+
+            {loading ? (
+              <p className="text-center py-10 text-gray-400 font-medium">Carregando vídeos...</p>
+            ) : videos.length === 0 ? (
+              <p className="text-center py-10 text-gray-400 font-medium">Nenhum vídeo disponível para esta data.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {videos.map((vid) => (
+                  <div key={vid.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col justify-between">
+                    <div className="relative aspect-[9/16] bg-black flex items-center justify-center">
+                      <video
+                        src={vid.url}
+                        controls
+                        preload="metadata"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="p-4 flex flex-col justify-between flex-1">
+                      <p className="text-xs font-bold text-gray-800 truncate mb-3" title={vid.nome}>
+                        {vid.nome}
+                      </p>
+                      <a
+                        href={vid.url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-[#a96190] hover:bg-[#8e4f78] text-white text-xs font-bold py-2.5 rounded-xl text-center transition-colors uppercase tracking-wider block"
+                      >
+                        Baixar Vídeo
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* GALERIA DE IMAGENS AVULSAS (PROPORÇÃO 9:16) */}
           <div className="mt-20 border-t border-gray-200 pt-16">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-10">
-              <div className="text-center sm:text-left">
-                <h2 className="text-2xl md:text-3xl font-bold text-[#1E293B] uppercase tracking-wide">
-                  Imagens Avulsas
-                </h2>
-                <p className="text-gray-500 text-sm">Baixe perspectivas individuais diretamente para o seu dispositivo.</p>
-              </div>
-
-              {datasDisponiveis.length > 0 && (
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-                  <span className="text-xs font-bold text-gray-600">Histórico de Atualizações:</span>
-                  <select
-                    value={dataFiltro}
-                    onChange={(e) => setDataFiltro(e.target.value)}
-                    className="text-xs font-bold text-[#1E293B] bg-transparent focus:outline-none cursor-pointer"
-                  >
-                    <option value="todas">Exibir Todas as Datas</option>
-                    {datasDisponiveis.map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+            <div className="mb-10 text-center sm:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1E293B] uppercase tracking-wide">
+                Imagens Avulsas ({imagensAvulsas.length})
+              </h2>
+              <p className="text-gray-500 text-sm">Baixe perspectivas individuais diretamente para o seu dispositivo.</p>
             </div>
 
             {loading ? (
@@ -356,18 +399,7 @@ export default function KitCorretorPage() {
         {/* Bloco de Informações - Roxo Principal (#a96190) */}
         <div className="w-full bg-[#a96190] py-14 px-6 text-center text-white">
           <div className="max-w-3xl mx-auto flex flex-col items-center">
-            
-            {/* LOGO EM CÍRCULO CONFORME PADRÃO LUMINI */}
-            <div className="w-40 h-40 sm:w-24 sm:h-32  flex items-center justify-center mb-6">
-              <div className="relative w-full h-full">
-                <Image
-                  src="/img/logo350.png"
-                  alt="Logo Nova Califórnia"
-                  fill
-                  className="object-contain p-1"
-                />
-              </div>
-            </div>
+
 
             <p className="text-white/95 mb-8 text-sm md:text-base max-w-lg font-medium leading-relaxed">
               Acompanhe nossas redes sociais oficiais e acesse o site para ficar por dentro de todas as novidades, campanhas e materiais de divulgação!
@@ -420,7 +452,7 @@ export default function KitCorretorPage() {
         {/* Imagem do Rodapé - Full Width */}
         <div className="w-full relative">
           <Image
-            src="/img/rodap_corretornc.jpg"
+            src="/img/rodapé_corretor.jpg"
             alt="Nova Califórnia Rodapé"
             width={1920}
             height={600}
