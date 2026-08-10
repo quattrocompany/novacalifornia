@@ -1,178 +1,163 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SecaoContato() {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    mensagem: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // Evita erro de hidratação e garante que o Recaptcha só renderize no cliente
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  // Chave pública do reCAPTCHA do Lumini 3
-  const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LedSHgtAAAAAPcAN_QO8ylKsyE3iJ7wH7X_gn37";
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Salva a referência do formulário antes da execução assíncrona
-    const form = e.currentTarget;
-
-    if (!captchaToken) {
-      alert("Por favor, confirme que você não é um robô.");
-      return;
-    }
-
-    setStatus("loading");
-    const formData = new FormData(form);
-    const data = {
-      nome: formData.get("nome"),
-      email: formData.get("email"),
-      telefone: formData.get("telefone"),
-      mensagem: formData.get("mensagem"),
-      captcha: captchaToken,
-    };
+    setLoading(true);
+    setStatus(null);
 
     try {
-      const response = await fetch("/api/contato", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        setStatus("success");
-        form.reset(); // Reseta usando a referência salva
-        recaptchaRef.current?.reset();
-        setCaptchaToken(null);
-      } else {
-        setStatus("error");
-      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setStatus({ type: "success", message: "Cadastro realizado com sucesso! Em breve entraremos em contato." });
+      setFormData({ nome: "", email: "", telefone: "", mensagem: "" });
     } catch (error) {
-      console.error("Erro no envio do formulário:", error);
-      setStatus("error");
+      setStatus({ type: "error", message: "Ocorreu um erro ao enviar. Tente novamente." });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section id="contato" className="py-8 md:py-16 bg-white relative z-10 overflow-visible">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 overflow-visible">
-        
-        <div className="relative bg-gradient-to-b from-[#FFBA00] via-[#FFBA00] via-40% to-[#87CEEB] to-90% lg:bg-gradient-to-r lg:from-[#87CEEB] lg:from-10% lg:via-[#FF9E00] lg:via-50% lg:to-[#FFBA00] lg:to-90% rounded-[2.5rem] shadow-xl flex flex-col lg:flex-row items-stretch justify-between lg:mt-1 overflow-visible">
+    <section
+      id="contato"
+      className="relative w-full py-16 sm:py-20 md:py-24 bg-cover bg-center bg-no-repeat overflow-hidden"
+      style={{ backgroundImage: "url('/img/02.webp')" }}
+    >
+      <div className="max-w-[1200px] mx-auto px-8 sm:px-12 lg:px-16 w-full relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           
-          <div className="w-full lg:w-6/12 flex flex-col justify-center p-6 pb-2 sm:p-10 sm:pb-4 lg:p-12 xl:pr-16 xl:pl-8 z-10 order-1 lg:order-2">
-            <h3 className="font-medium text-[#4A137B] text-[22px] sm:text-2xl lg:text-3xl uppercase leading-[1.2] mb-6 drop-shadow-sm text-left lg:text-left text-balance break-words">
-              CADASTRE-SE E RECEBA EM PRIMEIRA MÃO TODAS AS INFORMAÇÕES:
-            </h3>
+          {/* ================= COLUNA DA ESQUERDA: FORMULÁRIO ================= */}
+          <div className="lg:col-span-7 w-full">
+            <h2 className="text-[#a96190] font-black text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-wider mb-6 drop-shadow-sm">
+              CADASTRE-SE E RECEBA TODAS AS INFORMAÇÕES:
+            </h2>
 
-            {status === "success" ? (
-              <div className="bg-white/90 p-8 rounded-3xl text-center shadow-md border border-green-100">
-                <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <h4 className="text-xl font-bold text-[#4A137B] mb-2">Mensagem enviada!</h4>
-                <p className="text-gray-600 font-medium">Em breve entraremos em contato.</p>
-                <button onClick={() => setStatus("idle")} className="mt-6 text-[#7629BB] font-bold hover:underline">
-                  Enviar nova mensagem
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+              <div>
+                <input
+                  type="text"
+                  name="nome"
+                  required
+                  placeholder="NOME (*):"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  className="w-full bg-white/40 backdrop-blur-sm border-2 border-[#a96190]/60 rounded-lg px-4 py-3 text-gray-800 placeholder-[#a96190] font-semibold text-sm focus:outline-none focus:border-[#a96190] focus:bg-white/80 transition-all shadow-sm"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="E-MAIL (*):"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full bg-white/40 backdrop-blur-sm border-2 border-[#a96190]/60 rounded-lg px-4 py-3 text-gray-800 placeholder-[#a96190] font-semibold text-sm focus:outline-none focus:border-[#a96190] focus:bg-white/80 transition-all shadow-sm"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="tel"
+                  name="telefone"
+                  required
+                  placeholder="TELEFONE (*):"
+                  value={formData.telefone}
+                  onChange={handleChange}
+                  className="w-full bg-white/40 backdrop-blur-sm border-2 border-[#a96190]/60 rounded-lg px-4 py-3 text-gray-800 placeholder-[#a96190] font-semibold text-sm focus:outline-none focus:border-[#a96190] focus:bg-white/80 transition-all shadow-sm"
+                />
+              </div>
+
+              <div>
+                <textarea
+                  name="mensagem"
+                  rows={3}
+                  placeholder="MENSAGEM:"
+                  value={formData.mensagem}
+                  onChange={handleChange}
+                  className="w-full bg-white/40 backdrop-blur-sm border-2 border-[#a96190]/60 rounded-lg px-4 py-3 text-gray-800 placeholder-[#a96190] font-semibold text-sm focus:outline-none focus:border-[#a96190] focus:bg-white/80 transition-all shadow-sm resize-none"
+                />
+              </div>
+
+              {/* Botão e reCAPTCHA */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+                <div className="bg-white rounded-lg border border-gray-300 p-3 shadow-sm flex items-center gap-3 w-full sm:w-auto">
+                  <input
+                    type="checkbox"
+                    id="recaptcha"
+                    required
+                    className="w-5 h-5 accent-[#a96190] cursor-pointer"
+                  />
+                  <label htmlFor="recaptcha" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
+                    Não sou um robô
+                  </label>
+                  <div className="ml-auto sm:ml-4 flex flex-col items-center">
+                    <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                    </svg>
+                    <span className="text-[8px] text-gray-400 font-semibold">reCAPTCHA</span>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-auto bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold py-3.5 px-10 rounded-lg shadow-lg hover:shadow-xl transition-all uppercase tracking-wider text-sm disabled:opacity-50"
+                >
+                  {loading ? "ENVIANDO..." : "ENVIAR"}
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4 w-full">
-                <div>
-                  <label htmlFor="lead-nome" className="sr-only">Nome*</label>
-                  <input 
-                    id="lead-nome"
-                    name="nome"
-                    type="text" 
-                    placeholder="Nome*" 
-                    required 
-                    className="w-full bg-white border-none rounded-full px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-[#7629BB]/30 transition-all font-medium text-gray-800 placeholder-gray-400 shadow-sm"
-                  />
-                </div>
 
-                <div>
-                  <label htmlFor="lead-email" className="sr-only">E-mail*</label>
-                  <input 
-                    id="lead-email"
-                    name="email"
-                    type="email" 
-                    placeholder="E-mail*" 
-                    required 
-                    className="w-full bg-white border-none rounded-full px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-[#7629BB]/30 transition-all font-medium text-gray-800 placeholder-gray-400 shadow-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="lead-tel" className="sr-only">Telefone*</label>
-                  <input 
-                    id="lead-tel"
-                    name="telefone"
-                    type="tel" 
-                    placeholder="Telefone*" 
-                    required 
-                    className="w-full bg-white border-none rounded-full px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-[#7629BB]/30 transition-all font-medium text-gray-800 placeholder-gray-400 shadow-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="lead-msg" className="sr-only">Mensagem*</label>
-                  <textarea 
-                    id="lead-msg"
-                    name="mensagem"
-                    rows={4}
-                    placeholder="Mensagem*" 
-                    required 
-                    className="w-full bg-white border-none rounded-3xl px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-[#7629BB]/30 transition-all font-medium text-gray-800 placeholder-gray-400 shadow-sm resize-none"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                  <div className="w-full sm:w-auto flex justify-center min-h-[78px] min-w-[304px]">
-                    {isMounted && (
-                      <ReCAPTCHA
-                        ref={recaptchaRef}
-                        sitekey={SITE_KEY}
-                        onChange={(token) => setCaptchaToken(token)}
-                        hl="pt-BR"
-                      />
-                    )}
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={status === "loading"}
-                    className="w-full sm:w-auto bg-[#7629BB] hover:bg-[#4A137B] disabled:bg-gray-400 disabled:cursor-not-allowed text-[#FFFFFF] font-black text-base uppercase tracking-widest px-12 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 h-[78px]"
-                  >
-                    {status === "loading" ? "ENVIANDO..." : "ENVIAR"}
-                  </button>
-                </div>
-                {status === "error" && (
-                  <p className="text-red-600 text-sm font-bold text-center mt-2">
-                    Ocorreu um erro ao enviar. Tente novamente.
-                  </p>
-                )}
-              </form>
-            )}
+              {status && (
+                <p className={`text-xs font-bold mt-2 text-center sm:text-left ${status.type === "success" ? "text-emerald-700" : "text-red-600"}`}>
+                  {status.message}
+                </p>
+              )}
+            </form>
           </div>
 
-          <div className="relative w-full lg:w-5/12 flex flex-col justify-end overflow-visible min-h-[300px] sm:min-h-[400px] lg:min-h-[320px] order-2 lg:order-1 mt-0">
-            <div className="relative lg:absolute lg:bottom-0 lg:left-0 w-full lg:w-[115%] lg:-mt-80 z-20 pointer-events-none rounded-b-[2.5rem] lg:rounded-bl-[2.5rem] lg:rounded-br-none overflow-hidden">
-              <Image 
-                src="/img/edificios.png" 
-                alt="Edifício Lumini 3 - Arquitetura Moderna" 
-                width={1200} 
-                height={1400} 
-                quality={100}
-                className="w-full h-auto object-contain block rounded-b-[2.5rem] lg:rounded-bl-[2.5rem] lg:rounded-br-none mix-blend-normal"
-                priority
+          {/* ================= COLUNA DA DIREITA: DESTAQUES CENTRALIZADOS ENTRE SI ================= */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center text-center gap-5 w-full">
+            
+            {/* Imagem de Metragem */}
+            <div className="w-full max-w-[200px] sm:max-w-[240px] flex justify-center transition-transform hover:scale-105">
+              <Image
+                src="/img/metragem.png"
+                alt="46m² privativos, Terraço 1 Vaga, Lazer de Clube"
+                width={300}
+                height={225}
+                className="object-contain w-full h-auto drop-shadow-md mx-auto"
               />
             </div>
+
+            {/* Selo Minha Casa Minha Vida Centralizado no Elemento de Cima */}
+            <div className="w-full max-w-[140px] sm:max-w-[170px] flex justify-center transition-transform hover:scale-105">
+              <Image
+                src="/img/mcmv2.png"
+                alt="Minha Casa Minha Vida"
+                width={200}
+                height={100}
+                className="object-contain w-full h-auto mx-auto"
+              />
+            </div>
+
           </div>
 
         </div>

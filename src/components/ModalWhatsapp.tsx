@@ -14,7 +14,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
 
   if (!isOpen) return null;
 
-  // Máscara dinâmica: (11) 4164-4000 ou (11) 9 9999-9999
+  // Máscara dinâmica para WhatsApp
   const maskPhone = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
     if (!digits) return "";
@@ -26,12 +26,10 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 3)} ${digits.slice(3, 7)}-${digits.slice(7)}`;
   };
 
-  // Substitui vírgula por ponto, remove espaços e passa para minúsculo
   const sanitizeEmail = (email: string) => {
     return email.trim().toLowerCase().replace(/,/g, ".");
   };
 
-  // Validação da estrutura do e-mail
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     return emailRegex.test(email);
@@ -58,12 +56,12 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
           nome: formData.name,
           email: emailLimpo,
           telefone: formData.whatsapp,
-          mensagem: "Contato via modal WhatsApp",
+          mensagem: "Contato via modal WhatsApp - Nova Califórnia",
           via: "whatsapp",
         }),
       });
     } catch (err) {
-      console.error("Erro ao salvar no Supabase:", err);
+      console.error("Erro ao salvar lead:", err);
     }
 
     if (typeof window !== "undefined" && (window as any).dataLayer) {
@@ -73,8 +71,9 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
       });
     }
 
-    const mensagemTexto = encodeURIComponent(`Olá! Meu nome é ${formData.name}. Gostaria de mais informações sobre o Lumini 3.`);
-    const waUrl = `https://api.whatsapp.com/send?phone=551141644000&text=${mensagemTexto}`;
+    // Número oficial do Nova Califórnia do HTML: 11 97120.0175
+    const mensagemTexto = encodeURIComponent(`Olá! Meu nome é ${formData.name}. Gostaria de mais informações sobre o Nova Califórnia Barueri.`);
+    const waUrl = `https://api.whatsapp.com/send?phone=5511971200175&text=${mensagemTexto}`;
 
     setFormData({ name: "", email: "", whatsapp: "" });
     setIsSubmitting(false);
@@ -87,7 +86,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
 
   return (
     <div 
-      className="fixed inset-0 bg-[#4A137B]/90 z-[9999] flex justify-center items-center p-4 animate-in fade-in duration-300 backdrop-blur-sm"
+      className="fixed inset-0 bg-[#a96190]/90 z-[9999] flex justify-center items-center p-4 animate-in fade-in duration-300 backdrop-blur-sm"
       onClick={onClose}
     >
       <div 
@@ -96,14 +95,14 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
       >
         <button 
           onClick={onClose} 
-          className="absolute top-4 right-5 text-3xl text-gray-400 hover:text-[#4A137B] transition-colors focus:outline-none"
+          className="absolute top-4 right-5 text-3xl text-gray-400 hover:text-[#a96190] transition-colors focus:outline-none cursor-pointer"
           aria-label="Fechar Modal"
         >
           &times;
         </button>
 
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-black text-[#4A137B] uppercase tracking-wide">
+          <h3 className="text-2xl font-black text-[#a96190] uppercase tracking-wide">
             Atendimento
             <br />
             WhatsApp
@@ -122,7 +121,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
               placeholder="Seu nome"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7629BB]/50 transition-all text-gray-800 placeholder-gray-400"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#a96190]/50 transition-all text-gray-800 placeholder-gray-400"
             />
           </div>
 
@@ -138,7 +137,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
                 setFormData({ ...formData, email: sanitizeEmail(e.target.value) });
               }}
               onBlur={(e) => setFormData({ ...formData, email: sanitizeEmail(e.target.value) })}
-              className={`w-full bg-gray-50 border ${emailError ? "border-red-500" : "border-gray-200"} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7629BB]/50 transition-all text-gray-800 placeholder-gray-400`}
+              className={`w-full bg-gray-50 border ${emailError ? "border-red-500" : "border-gray-200"} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#a96190]/50 transition-all text-gray-800 placeholder-gray-400`}
             />
             {emailError && <p className="text-red-500 text-xs font-semibold mt-1">{emailError}</p>}
           </div>
@@ -151,7 +150,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
               placeholder="(11) 9 9999-9999"
               value={formData.whatsapp}
               onChange={(e) => setFormData({ ...formData, whatsapp: maskPhone(e.target.value) })}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7629BB]/50 transition-all text-gray-800 placeholder-gray-400"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#a96190]/50 transition-all text-gray-800 placeholder-gray-400"
             />
           </div>
 
@@ -161,7 +160,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full bg-[#25D366] hover:bg-[#1DA851] disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-full transition-colors uppercase tracking-wider text-sm shadow-md flex items-center justify-center gap-2"
+              className="w-full bg-[#25D366] hover:bg-[#1DA851] disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-full transition-colors uppercase tracking-wider text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               {!isSubmitting && (
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -173,7 +172,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
             <button 
               type="button" 
               onClick={onClose}
-              className="w-full bg-[#EF4444] hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition-colors uppercase tracking-wider text-sm shadow-md"
+              className="w-full bg-[#EF4444] hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition-colors uppercase tracking-wider text-sm shadow-md cursor-pointer"
             >
               Fechar
             </button>

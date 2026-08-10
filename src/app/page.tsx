@@ -8,7 +8,6 @@ import { Montserrat } from "next/font/google";
 import SecaoBanner from "@/components/SecaoBanner";
 import SecaoAerea from "@/components/SecaoAerea";
 import SecaoContato from "@/components/SecaoContato";
-import SecaoQualidadeDeVida from "@/components/QualidadeDeVida"; 
 import SecaoSegurancaComodidade from "@/components/SecaoSegurancaComodidade";
 import SecaoLazer from "@/components/SecaoLazer";
 import SecaoImplantacao from "@/components/SecaoImplantacao";
@@ -30,10 +29,10 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState<string>("home");
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
-  // Escuta o Scroll para o Header e Navegação Ativa
+  // Escuta o Scroll para mudar os estados do Header
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
+      setIsScrolled(window.scrollY > 40);
 
       const domOrder = ["home", "contato", "produto", "lazer", "plantas", "localizacao", "realizacao"];
       let currentSection = "home";
@@ -55,7 +54,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Ouvintes globais para abrir os modais via Eventos Customizados
+  // Eventos customizados dos Modais
   useEffect(() => {
     const handleOpenWhatsapp = () => openModal("whatsapp");
     const handleOpenPrivacidade = () => openModal("privacidade");
@@ -94,109 +93,130 @@ export default function Home() {
     if (typeof window !== "undefined") document.body.style.overflow = "auto";
   };
 
+  // Funções Auxiliares para Cores do Menu Dinâmico
+  const getLinkClass = (section: string) => {
+    const isActive = activeSection === section;
+    if (isScrolled) {
+      return isActive ? 'text-white font-semibold' : 'text-white/90 hover:text-white font-medium';
+    } else {
+      return isActive 
+        ? 'text-[#a96190] font-semibold drop-shadow-md' 
+        : 'text-[#1E293B] hover:text-[#a96190] font-medium drop-shadow-md transition-colors';
+    }
+  };
+
+  const getSeparatorClass = () => {
+    return isScrolled ? 'text-white/40 font-light select-none' : 'text-gray-500/50 font-light select-none drop-shadow-sm';
+  };
+
   return (
     <main className={`min-h-screen text-[#333333] bg-white overflow-x-hidden ${montserrat.className}`}>
       
-      {/* ================= HEADER FLUTUANTE ================= */}
-      <header 
-        className={`fixed left-0 right-0 w-full z-50 transition-all duration-500 ease-in-out pointer-events-none ${
-          isScrolled ? "top-4 md:top-6" : "top-8 md:top-12"
-        }`}
-      >
-        <div className="max-w-[1440px] mx-auto px-6 md:px-12 flex items-center relative pointer-events-auto">
+      {/* ================= HEADER DINÂMICO ================= */}
+      <header className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ${
+        isScrolled 
+          ? "bg-[#a96190]/95 backdrop-blur-md shadow-xl py-2 md:py-3" 
+          : "bg-transparent pointer-events-none pt-4 sm:pt-6"
+      }`}>
+        <div className={`max-w-[1440px] mx-auto w-full px-4 sm:px-6 md:px-10 flex ${isScrolled ? "items-center" : "items-start"} justify-between pointer-events-auto transition-all`}>
           
+          {/* Logo */}
           <div 
             onClick={(e) => scrollToSection(e as any, 'home')}
-            className={`absolute left-2 sm:left-6 md:left-12 top-1/2 -translate-y-1/2 z-20 cursor-pointer transition-all duration-500 hover:scale-105 ${
-              isScrolled ? "scale-90" : "scale-100"
-            }`}
+            className="cursor-pointer transition-transform hover:scale-105 shrink-0"
             aria-label="Voltar ao início"
           >
-            <Image 
-              src="/img/logo_lumini3_header.png" 
-              alt="Logo Lumini 3" 
-              width={160} 
-              height={160} 
-              className="w-24 h-24 sm:w-28 sm:h-28 md:w-30 md:h-30 lg:w-32 lg:h-32 object-contain drop-shadow-xl"
-              priority
-            />
+            {isScrolled ? (
+              <Image 
+                src="/img/LogoNovaCalifornia_Horiz.png" 
+                alt="Logo Nova Califórnia" 
+                width={200} 
+                height={60} 
+                className="h-8 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm brightness-0 invert" 
+                priority
+              />
+            ) : (
+              <Image 
+                src="/img/logo350.png" 
+                alt="Logo Nova Califórnia" 
+                width={350} 
+                height={350} 
+                className="h-40 sm:h-48 md:h-56 lg:h-64 w-auto object-contain drop-shadow-2xl"
+                priority
+              />
+            )}
           </div>
 
-          <div 
-            className={`w-full rounded-full pill-header-shadow flex items-center justify-between pl-28 sm:pl-32 md:pl-40 pr-6 md:pr-10 border transition-all duration-500 ${
-              isScrolled
-                ? "h-11 md:h-14 bg-gradient-to-r from-white/85 via-white/95 to-white/85 backdrop-blur-md border-white/60 shadow-2xl pointer-events-auto"
-                : "h-12 md:h-16 bg-white border-gray-100 pointer-events-auto"
-            }`}
-          >
-            <nav className="hidden md:flex items-center justify-end w-full gap-2 lg:gap-4 xl:gap-6 text-xs lg:text-sm pointer-events-auto">
-              <a href="#home" onClick={(e) => scrollToSection(e, 'home')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'home' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>HOME</a>
-              <span className="text-gray-300 select-none font-light">|</span>
+          {/* Menu de Navegação */}
+          <div className="flex items-center justify-end h-10 md:h-12">
+            <nav className="hidden md:flex items-center gap-3 lg:gap-5 xl:gap-8 text-sm lg:text-base tracking-wider">
+              <a href="#home" onClick={(e) => scrollToSection(e, 'home')} className={`transition-all cursor-pointer ${getLinkClass('home')}`}>HOME</a>
+              <span className={getSeparatorClass()}>|</span>
               
-              <a href="#produto" onClick={(e) => scrollToSection(e, 'produto')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'produto' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>PRODUTO</a>
-              <span className="text-gray-300 select-none font-light">|</span>
+              <a href="#produto" onClick={(e) => scrollToSection(e, 'produto')} className={`transition-all cursor-pointer ${getLinkClass('produto')}`}>PRODUTO</a>
+              <span className={getSeparatorClass()}>|</span>
               
-              <a href="#lazer" onClick={(e) => scrollToSection(e, 'lazer')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'lazer' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>LAZER</a>
-              <span className="text-gray-300 select-none font-light">|</span>
+              <a href="#lazer" onClick={(e) => scrollToSection(e, 'lazer')} className={`transition-all cursor-pointer ${getLinkClass('lazer')}`}>LAZER</a>
+              <span className={getSeparatorClass()}>|</span>
               
-              <a href="#plantas" onClick={(e) => scrollToSection(e, 'plantas')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'plantas' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>PLANTAS</a>
-              <span className="text-gray-300 select-none font-light">|</span>
+              <a href="#plantas" onClick={(e) => scrollToSection(e, 'plantas')} className={`transition-all cursor-pointer ${getLinkClass('plantas')}`}>PLANTAS</a>
+              <span className={getSeparatorClass()}>|</span>
               
-              <a href="#localizacao" onClick={(e) => scrollToSection(e, 'localizacao')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'localizacao' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>LOCALIZAÇÃO</a>
-              <span className="text-gray-300 select-none font-light">|</span>
+              <a href="#localizacao" onClick={(e) => scrollToSection(e, 'localizacao')} className={`transition-all cursor-pointer ${getLinkClass('localizacao')}`}>LOCALIZAÇÃO</a>
+              <span className={getSeparatorClass()}>|</span>
               
-              <a href="#realizacao" onClick={(e) => scrollToSection(e, 'realizacao')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'realizacao' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>REALIZAÇÃO</a>
-              <span className="text-gray-300 select-none font-light">|</span>
+              <a href="#realizacao" onClick={(e) => scrollToSection(e, 'realizacao')} className={`transition-all cursor-pointer ${getLinkClass('realizacao')}`}>REALIZAÇÃO</a>
+              <span className={getSeparatorClass()}>|</span>
               
-              <a href="#contato" onClick={(e) => scrollToSection(e, 'contato')} className={`nav-menu-item transition-all cursor-pointer ${activeSection === 'contato' ? 'font-black text-[#FFBA00]' : 'font-medium text-gray-500 hover:text-[#FFBA00] hover:font-bold'}`}>CONTATO</a>
+              <a href="#contato" onClick={(e) => scrollToSection(e, 'contato')} className={`transition-all cursor-pointer ${getLinkClass('contato')}`}>CONTATO</a>
             </nav>
 
             <button 
-              className="md:hidden ml-auto p-1 text-[#4A137B] focus:outline-none pointer-events-auto"
+              className={`md:hidden p-1 focus:outline-none drop-shadow-sm ${isScrolled ? 'text-white' : 'text-[#a96190]'}`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Abrir Menu de Navegação"
+              aria-label="Abrir Menu"
             >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
                 )}
               </svg>
             </button>
           </div>
+
         </div>
 
+        {/* Menu Mobile Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden max-w-[1440px] mx-auto mt-2 px-6 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-5 border border-gray-100 pointer-events-auto">
-            <nav className="flex flex-col gap-2.5 text-center text-xs font-medium text-gray-800 uppercase tracking-wider">
-              <a href="#home" onClick={(e) => scrollToSection(e, 'home')} className="py-2 hover:font-black hover:text-[#FFBA00] border-b border-gray-100">HOME</a>
-              <a href="#produto" onClick={(e) => scrollToSection(e, 'produto')} className="py-2 hover:font-black hover:text-[#FFBA00] border-b border-gray-100">PRODUTO</a>
-              <a href="#lazer" onClick={(e) => scrollToSection(e, 'lazer')} className="py-2 hover:font-black hover:text-[#FFBA00] border-b border-gray-100">LAZER</a>
-              <a href="#plantas" onClick={(e) => scrollToSection(e, 'plantas')} className="py-2 hover:font-black hover:text-[#FFBA00] border-b border-gray-100">PLANTAS</a>
-              <a href="#localizacao" onClick={(e) => scrollToSection(e, 'localizacao')} className="py-2 hover:font-black hover:text-[#FFBA00] border-b border-gray-100">LOCALIZAÇÃO</a>
-              <a href="#realizacao" onClick={(e) => scrollToSection(e, 'realizacao')} className="py-2 hover:font-black hover:text-[#FFBA00] border-b border-gray-100">REALIZAÇÃO</a>
-              <a href="#contato" onClick={(e) => scrollToSection(e, 'contato')} className="py-2 hover:font-bold hover:text-[#FFBA00]">CONTATO</a>
-            </nav>
+          <div className="md:hidden w-full max-w-[1440px] mx-auto mt-2 px-4 pointer-events-auto relative z-50">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-5 border border-gray-200 text-center">
+              <nav className="flex flex-col gap-3 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                <a href="#home" onClick={(e) => scrollToSection(e, 'home')} className="py-2 hover:text-[#a96190] border-b border-gray-100">HOME</a>
+                <a href="#produto" onClick={(e) => scrollToSection(e, 'produto')} className="py-2 hover:text-[#a96190] border-b border-gray-100">PRODUTO</a>
+                <a href="#lazer" onClick={(e) => scrollToSection(e, 'lazer')} className="py-2 hover:text-[#a96190] border-b border-gray-100">LAZER</a>
+                <a href="#plantas" onClick={(e) => scrollToSection(e, 'plantas')} className="py-2 hover:text-[#a96190] border-b border-gray-100">PLANTAS</a>
+                <a href="#localizacao" onClick={(e) => scrollToSection(e, 'localizacao')} className="py-2 hover:text-[#a96190] border-b border-gray-100">LOCALIZAÇÃO</a>
+                <a href="#realizacao" onClick={(e) => scrollToSection(e, 'realizacao')} className="py-2 hover:text-[#a96190] border-b border-gray-100">REALIZAÇÃO</a>
+                <a href="#contato" onClick={(e) => scrollToSection(e, 'contato')} className="py-2 hover:text-[#a96190]">CONTATO</a>
+              </nav>
+            </div>
           </div>
         )}
       </header>
 
-      {/* ================= FLUXO DAS SEÇÕES MODULARES COM IDS ================= */}
+      {/* ================= FLUXO DAS SEÇÕES MODULARES ================= */}
       
       <div id="nav-home">
         <SecaoBanner />
       </div>
 
-      <SecaoAerea />
-
       <div id="nav-contato">
         <SecaoContato />
       </div>
-      
-      <div id="nav-produto">
-        <SecaoQualidadeDeVida />
-      </div>
+
+      <SecaoAerea />
 
       <SecaoSegurancaComodidade />
 
@@ -225,10 +245,10 @@ export default function Home() {
       {/* ================= MODAL WHATSAPP COMPONENTIZADO ================= */}
       <ModalWhatsapp isOpen={activeModal === "whatsapp"} onClose={closeModal} />
 
-      {/* ================= MODAIS LEGAIS (LGPD / Privacidade) ================= */}
+      {/* ================= MODAIS LEGAIS ================= */}
       {(activeModal === 'privacidade' || activeModal === 'lgpd') && (
         <div 
-          className="fixed inset-0 bg-[#4A137B]/90 z-[9999] flex justify-center items-center p-4 animate-in fade-in duration-300 backdrop-blur-sm"
+          className="fixed inset-0 bg-[#a96190]/90 z-[9999] flex justify-center items-center p-4 animate-in fade-in duration-300 backdrop-blur-sm"
           onClick={closeModal}
         >
           <div 
@@ -237,7 +257,7 @@ export default function Home() {
           >
             <button 
               onClick={closeModal} 
-              className="absolute top-4 right-6 text-4xl text-gray-400 hover:text-[#4A137B] transition-colors focus:outline-none"
+              className="absolute top-4 right-6 text-4xl text-gray-400 hover:text-[#a96190] transition-colors focus:outline-none"
               aria-label="Fechar Modal"
             >
               &times;
@@ -245,18 +265,18 @@ export default function Home() {
             
             {activeModal === 'privacidade' && (
               <>
-                <h2 className="text-2xl font-black text-[#4A137B] uppercase mb-6">POLÍTICA DE PRIVACIDADE</h2>
+                <h2 className="text-2xl font-black text-[#a96190] uppercase mb-6">POLÍTICA DE PRIVACIDADE</h2>
                 <p className="text-gray-600 leading-relaxed text-justify font-medium text-sm">
-                  A sua privacidade é importante para nós. É política da Quattro Inc respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar nos sites da Quattro Inc, e outros sites que possuímos e operamos.
+                  A sua privacidade é importante para nós. É política da Quattro Inc respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar nos sites da Nova Califórnia, e outros sites que possuímos e operamos.
                 </p>
               </>
             )}
 
             {activeModal === 'lgpd' && (
               <>
-                <h2 className="text-2xl font-black text-[#4A137B] uppercase mb-6">POLÍTICA DE DADOS LGPD</h2>
+                <h2 className="text-2xl font-black text-[#a96190] uppercase mb-6">POLÍTICA DE DADOS LGPD</h2>
                 <p className="text-gray-600 leading-relaxed text-justify mb-4 font-medium text-sm">
-                  Nos comprometemos a nunca compartilhar seus dados com terceiros. Os dados aqui captados (Nome, E-mail e Telefone) serão utilizados única e exclusivamente pela incorporadora responsável por esse empreendimento para que seja possível o contato com el cliente e apresentação dos produtos vinculados à marca da Incorporadora ou pertencentes ao mesmo grupo econômico da Vendedora.
+                  Nos comprometemos a nunca compartilhar seus dados com terceiros. Os dados aqui captados (Nome, E-mail e Telefone) serão utilizados única e exclusivamente pela incorporadora responsável por esse empreendimento para que seja possível o contato com o cliente e apresentação dos produtos vinculados à marca da Incorporadora ou pertencentes ao mesmo grupo econômico da Vendedora.
                 </p>
                 <p className="text-gray-600 leading-relaxed text-justify mb-4 font-medium text-sm">
                   O nosso site pode ter links para sites externos que não são operados por nós. Esteja ciente de que não temos controle sobre o conteúdo e práticas desses sites e não podemos aceitar responsabilidade por suas respectivas políticas de privacidade.

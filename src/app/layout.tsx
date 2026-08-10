@@ -11,29 +11,33 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-// Metadados oficiais para SEO e redes sociais
+// Metadados oficiais para SEO e redes sociais - Nova Califórnia
 export const metadata: Metadata = {
-  title: "Lumini 3 | Empreendimento em Carapicuíba - Quattro Inc",
-  description: "A família cresceu! O Lumini 3 também, agora com 3 Dorms. Lazer de Resort, Varanda Gourmet e excelente localização a 7 min. do Parque Shopping Barueri.",
-  keywords: ["Lumini 3", "Apartamento Carapicuíba", "Quattro Inc", "Minha Casa Minha Vida", "3 Dormitórios Carapicuíba"],
+  title: "NOVA CALIFÓRNIA | Jardim Califórnia - Barueri • 2 Dorms. • Terraço • 1 Vaga",
+  description: "NOVA CALIFÓRNIA | Jardim Califórnia - Barueri • 2 Dorms. • Terraço • 1 Vaga",
+  keywords: [
+    "Nova Califórnia Barueri",
+    "Apartamento Barueri",
+    "Lançamento Barueri",
+    "Minha Casa Minha Vida Barueri",
+    "2 Dorms Terraço 1 Vaga",
+  ],
   openGraph: {
-    title: "Lumini 3 | Empreendimento em Carapicuíba",
-    description: "Apartamentos de 2 e 3 Dorms com Varanda Gourmet e Lazer de Resort.",
-    siteName: "Lumini 3",
+    title: "NOVA CALIFÓRNIA | Jardim Califórnia - Barueri",
+    description: "NOVA CALIFÓRNIA | Jardim Califórnia - Barueri • 2 Dorms. • Terraço • 1 Vaga",
+    url: "https://www.novacalifornia.com.br",
+    siteName: "NOVA CALIFÓRNIA",
     locale: "pt_BR",
     type: "website",
   },
-  verification: {
-    other: { 'facebook-domain-verification': ['qgwijgvv27t2gxdgibclvhfiqrkya7'] },
-  },
 };
 
-// Configuração da Viewport para dispositivos móveis
+// Configuração da Viewport
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#0b1f38",
+  themeColor: "#a96190",
 };
 
 export default function RootLayout({
@@ -50,14 +54,14 @@ export default function RootLayout({
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-PGPZ5ZVW');
+            })(window,document,'script','dataLayer','GTM-WHVRLXR2');
           `}
         </Script>
       </head>
-      <body className="min-h-screen bg-white text-[#333333] antialiased selection:bg-[#d4af37] selection:text-[#0b1f38]">
+      <body className="min-h-screen bg-white text-[#333333] antialiased selection:bg-[#f9d150] selection:text-[#a96190]">
         <noscript>
           <iframe 
-            src="https://www.googletagmanager.com/ns.html?id=GTM-PGPZ5ZVW"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-WHVRLXR2"
             height="0" 
             width="0" 
             style={{ display: "none", visibility: "hidden" }}

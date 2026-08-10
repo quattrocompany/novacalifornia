@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { nome, email, telefone, mensagem, captcha, via } = body;
 
-    console.log(">>> NOVO LEAD LUMINI 3 RECEBIDO:", { nome, email, telefone, via });
+    console.log(">>> NOVO LEAD NOVA CALIFÓRNIA RECEBIDO:", { nome, email, telefone, via });
 
     const isWhatsapp = via === "whatsapp" || mensagem === "Contato via modal WhatsApp";
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error(">>> ERRO: Variaveis do Supabase nao configuradas.");
+      console.error(">>> ERRO: Variáveis do Supabase não configuradas.");
       return NextResponse.json({ error: "Configuração do banco ausente." }, { status: 500 });
     }
 
@@ -52,8 +52,8 @@ export async function POST(request: Request) {
           nome: nome || "Não informado",
           email: email || "Não informado",
           telefone: telefone || "Não informado",
-          mensagem: mensagem || (isWhatsapp ? "Contato via modal WhatsApp" : "Contato via site Lumini 3"),
-          origem: isWhatsapp ? "WhatsApp Modal - Lumini 3" : "Formulário de Contato - Lumini 3",
+          mensagem: mensagem || (isWhatsapp ? "Contato via modal WhatsApp" : "Contato via site Nova Califórnia"),
+          origem: isWhatsapp ? "WhatsApp Modal - Nova Califórnia" : "Formulário de Contato - Nova Califórnia",
         },
       ])
       .select();
@@ -81,12 +81,12 @@ export async function POST(request: Request) {
           });
 
           await transporter.sendMail({
-            from: `"Site Lumini 3" <${process.env.SMTP_USER}>`,
+            from: `"Site Nova Califórnia" <${process.env.SMTP_USER}>`,
             to: process.env.SMTP_USER,
             replyTo: email,
-            subject: `Novo Lead - Lumini 3 (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
+            subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
             html: `
-              <h2>Novo contato recebido pelo site Lumini 3</h2>
+              <h2>Novo contato recebido pelo site Nova Califórnia</h2>
               <p><strong>Nome:</strong> ${nome}</p>
               <p><strong>E-mail:</strong> ${email}</p>
               <p><strong>Telefone:</strong> ${telefone}</p>

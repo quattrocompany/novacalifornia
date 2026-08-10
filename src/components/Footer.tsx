@@ -52,41 +52,45 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
           <div className="border-t border-gray-200 border-b py-10 mb-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 items-start justify-items-center text-center">
               
-              <div className="flex flex-col items-center justify-start w-full">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
-                  INCORPORAÇÃO:
-                </span>
-                <div className="relative w-full max-w-[140px] sm:max-w-[180px] h-16 sm:h-24">
-                  <Image src="/img/logo-quattro-inc.png" alt="Quattro Inc" fill className="object-contain" />
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center justify-start w-full">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
-                  CONSTRUÇÃO:
-                </span>
-                <div className="relative w-full max-w-[110px] sm:max-w-[130px] h-16 sm:h-24">
-                  <Image src="/img/logo-quattro-construtora.png" alt="Quattro Construtora" fill className="object-contain" />
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center justify-start w-full">
+              {/* Intermediação */}
+              <a href="https://direcoesconsultoria.com.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
                 <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
                   INTERMEDIAÇÃO:
                 </span>
-                <div className="relative w-full max-w-[140px] sm:max-w-[180px] h-16 sm:h-24">
-                  <Image src="/img/logo-direcoes.png" alt="Direções Imobiliária" fill className="object-contain" />
+                <div className="relative w-full max-w-[140px] sm:max-w-[180px] h-16 sm:h-20">
+                  <Image src="/img/L1.png" alt="Direções Consultoria" fill className="object-contain" />
                 </div>
-              </div>
+              </a>
 
-              <div className="flex flex-col items-center justify-start w-full">
+              {/* Financiamento */}
+              <a href="https://www.caixa.gov.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
                 <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
                   FINANCIAMENTO:
                 </span>
-                <div className="relative w-full max-w-[120px] sm:max-w-[160px] h-16 sm:h-24">
-                  <Image src="/img/logo-caixa.png" alt="CAIXA" fill className="object-contain" />
+                <div className="relative w-full max-w-[120px] sm:max-w-[160px] h-16 sm:h-20">
+                  <Image src="/img/L2.png" alt="Caixa Econômica Federal" fill className="object-contain" />
                 </div>
-              </div>
+              </a>
+
+              {/* Construção */}
+              <a href="https://www.quattroconstrutora.com.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
+                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
+                  CONSTRUÇÃO:
+                </span>
+                <div className="relative w-full max-w-[110px] sm:max-w-[130px] h-16 sm:h-20">
+                  <Image src="/img/L3.png" alt="Quattro Construtora" fill className="object-contain" />
+                </div>
+              </a>
+
+              {/* Incorporação */}
+              <a href="https://www.quattroinc.com.br/" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-start w-full hover:opacity-80 transition-opacity">
+                <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
+                  INCORPORAÇÃO:
+                </span>
+                <div className="relative w-full max-w-[140px] sm:max-w-[180px] h-16 sm:h-20">
+                  <Image src="/img/L4.png" alt="Quattro Inc" fill className="object-contain" />
+                </div>
+              </a>
 
             </div>
           </div>
@@ -94,15 +98,15 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
           {/* Disclaimer Legal */}
           <div className="mb-8">
             <p className="text-[10px] sm:text-[11px] text-gray-400 text-justify leading-relaxed font-normal">
-              R.I. no R.14, Matrícula N°23.286 no C.R.I. de Carapicuíba em 04/09/2025. *Valor referente a unidade N°4, pavimento térreo da Torre C, de 2 dorms., sem vaga, com 34,60m². A inclusão no Programa Minha Casa Minha vida está vinculada ao enquadramento de renda e regras do Programa, à época da assinatura do contrato de financiamento. Apesar de todo cuidado na obtenção das informações contidas neste material, elas não devem ser consideradas como parte integrante de qualquer contrato. As áreas de lazer serão entregues equipadas e decoradas de acordo com o memorial descritivo. As ilustrações, artes, fotos, mobiliário, vegetação e peças de decoração dos materiais de divulgação têm caráter exclusivamente promocional por tratar-se de bem a ser construído, sendo que as condições de comercialização projetos e especificações são aquelas dos contratos e memoriais a serem firmados com os adquirentes. A vegetação será entregue em diferentes tamanhos e portes. Fotos ilustrativas. Perspectivas artísticas. O empreendimento localiza-se na Rua Heitor de Oliveira, 80 – Vila Sul Americana/ Carapicuíba.
+              R.I. na Matrícula N°154.490 no C.R.I. da Comarca de Barueri em 28/10/2025. A inclusão no Programa Minha Casa Minha vida está vinculada ao enquadramento de renda e regras do Programa, à época da assinatura do contrato de financiamento. Apesar de todo cuidado na obtenção das informações contidas neste material, elas não devem ser consideradas como parte integrante de qualquer contrato. As áreas comuns e de lazer serão entregues equipadas e decoradas de acordo com o memorial descritivo. As ilustrações, artes, fotos, mobiliário, vegetação e peças de decoração dos materiais de divulgação têm caráter exclusivamente promocional por tratar-se de bem a ser construído, sendo que as condições de comercialização projetos e especificações são aquelas dos contratos e memoriais a serem firmados com os adquirentes. A vegetação será entregue em diferentes tamanhos e portes. Fotos ilustrativas. Perspectivas artísticas. Local do empreendimento: Rua Chaves, 658 – Jardim Califórnia/ Barueri.
             </p>
           </div>
 
           {/* Copyright e Links Modais */}
           <div className="border-t border-gray-200 pt-6 text-center">
             <p className="text-[11px] sm:text-xs text-gray-400 font-medium">
-              © 2026 | Lumini 3 |{" "}
-              <button onClick={handlePrivacidadeClick} className="font-bold hover:text-[#7629BB] transition-colors underline cursor-pointer">
+              © 2026 | Nova Califórnia |{" "}
+              <button onClick={handlePrivacidadeClick} className="font-bold text-[#a96190] hover:text-[#8e4e78] transition-colors underline cursor-pointer">
                 Termos de Uso e Política de Privacidade
               </button>
             </p>
@@ -125,9 +129,9 @@ export default function Footer({ onOpenWhatsapp, onOpenPrivacidade, onOpenLgpd }
         </div>
       </a>
 
-      {/* Barra Roxa Fixa de Atendimento */}
+      {/* Barra Fixa Magenta (#a96190) de Atendimento */}
       <div 
-        className={`fixed bottom-0 left-0 w-full z-50 bg-[#6f469d] shadow-[0_-10px_30px_rgba(0,0,0,0.3)] transition-transform duration-500 ease-in-out ${
+        className={`fixed bottom-0 left-0 w-full z-50 bg-[#a96190] shadow-[0_-10px_30px_rgba(0,0,0,0.3)] transition-transform duration-500 ease-in-out ${
           showStickyBar ? "translate-y-0 rounded-t-3xl md:rounded-none" : "translate-y-full"
         }`}
       >

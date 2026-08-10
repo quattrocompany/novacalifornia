@@ -31,7 +31,7 @@ export default function CookieBanner() {
               Olá 🍪 Usamos cookies para garantir que você obtenha a melhor experiência em nosso site.{" "}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="text-[#4A137B] font-bold hover:underline ml-1 focus:outline-none"
+                className="text-[#cd7e25] font-bold hover:underline ml-1 focus:outline-none"
               >
                 Saiba mais.
               </button>

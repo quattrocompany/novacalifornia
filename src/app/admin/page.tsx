@@ -58,12 +58,12 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col justify-between">
       <div>
-        {/* BANNER SUPERIOR LUMINI */}
-        <div className="w-full relative z-10 pt-16 sm:pt-20 bg-[#551078] pb-8 flex items-center justify-center shadow-md">
+        {/* BANNER SUPERIOR NOVA CALIFÓRNIA */}
+        <div className="w-full relative z-10 pt-16 sm:pt-20 bg-[#a96190] pb-8 flex items-center justify-center shadow-md">
           <div className="relative w-64 sm:w-80 md:w-96 h-24 sm:h-32">
             <Image
-              src="/img/logowhite.png"
-              alt="Logo Lumini"
+              src="/img/LogoNovaCalifornia_Horiz.png"
+              alt="Logo Nova Califórnia"
               fill
               className="object-contain"
               priority
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-[#8810dd] focus:ring-1 focus:ring-[#8810dd] text-gray-800"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-[#a96190] focus:ring-1 focus:ring-[#a96190] text-gray-800"
                   placeholder="Digite seu usuário"
                 />
               </div>
@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-[#8810dd] focus:ring-1 focus:ring-[#8810dd] text-gray-800"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-[#a96190] focus:ring-1 focus:ring-[#a96190] text-gray-800"
                   placeholder="Digite sua senha"
                 />
               </div>
@@ -108,7 +108,7 @@ export default function AdminLoginPage() {
                 type="button"
                 onClick={handleLogin}
                 disabled={loading}
-                className="w-full bg-[#DD6810] text-white font-bold py-3 rounded-lg hover:bg-[#c45a0d] transition-colors disabled:opacity-50 mt-4 cursor-pointer"
+                className="w-full bg-[#a96190] text-white font-bold py-3 rounded-lg hover:bg-[#8e4e78] transition-colors disabled:opacity-50 mt-4 cursor-pointer"
               >
                 {loading ? "Autenticando..." : "Entrar no Painel"}
               </button>
@@ -117,10 +117,10 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      {/* RODAPÉ LUMINI */}
+      {/* RODAPÉ NOVA CALIFÓRNIA */}
       <div className="w-full bg-[#ffffff] border-t border-gray-200 py-8 px-6 text-center mt-16 md:mt-24">
-        <p className="text-xs sm:text-sm font-bold tracking-wide text-[#8810dd]">
-          Quattro Inc © 2026 | Termos de Uso e Política de Privacidade
+        <p className="text-xs sm:text-sm font-bold tracking-wide text-[#a96190]">
+          Quattro Inc © 2026 Nova Califórnia | Termos de Uso e Política de Privacidade
         </p>
       </div>
     </main>

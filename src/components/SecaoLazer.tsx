@@ -1,139 +1,129 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
-interface ItemLazer {
-  src: string;
-  titulo: string;
-  alt: string;
-}
-
-const imagensLazer: ItemLazer[] = [
-  { src: "/img/pet place.jpg", titulo: "PET PLACE", alt: "Espaço Pet Place para seu animal de estimação" },
-  { src: "/img/playground.jpg", titulo: "PLAYGROUND", alt: "Área de playground para crianças" },
-  { src: "/img/espaco grill.jpg", titulo: "ESPAÇO GRILL COM CHURRASQUEIRA", alt: "Espaço grill com churrasqueira" },
-  { src: "/img/piscina infantil.jpg", titulo: "PISCINA INFANTIL", alt: "Piscina infantil com área de descanso" },
-  { src: "/img/crossfit.jpg", titulo: "CROSSFIT", alt: "Área de crossfit para atividades físicas" },
-  { src: "/img/voo do lazer.jpg", titulo: "VOO DO LAZER", alt: "Área de voo do lazer para atividades recreativas" },
-  { src: "/img/piscina adulto deck molhado.jpg", titulo: "PISCINA ADULTO DECK MOLHADO", alt: "Piscina para adultos com deck molhado" },
-  { src: "/img/quadra de beach volei.jpg", titulo: "QUADRA DE BEACH VOLEI", alt: "Quadra de beach volei para atividades esportivas" },
-  { src: "/img/voo do lazer piscina.jpg", titulo: "VÔO DO LAZER PISCINA", alt: "Área de voo do lazer da piscina para atividades recreativas" },
-  { src: "/img/salao de festas.jpg", titulo: "SALÃO DE FESTAS", alt: "Salão de festas para eventos e comemorações" },
-  { src: "/img/quadra poliesportiva.jpg", titulo: "QUADRA POLIESPORTIVA", alt: "Quadra poliesportiva para atividades físicas" },
-  { src: "/img/espaco beleza.jpg", titulo: "ESPAÇO BELEZA", alt: "Espaço de beleza para tratamentos e cuidados" },
-  { src: "/img/brinquedoteca.jpg", titulo: "BRINQUEDOTECA", alt: "Área de brinquedoteca para crianças" },
-  { src: "/img/salao de jogos.jpg", titulo: "SALÃO DE JOGOS", alt: "Salão de jogos para entretenimento" },  
-  { src: "/img/fitness.jpg", titulo: "FITNESS", alt: "Área de fitness para atividades físicas" },
+// Lista de imagens do Lazer
+const slidesLazer = [
+  { src: "/img/lazer/01.jpg", alt: "PISCINA ADULTO COM DECK MOLHADO", label: "PISCINA ADULTO COM DECK MOLHADO" },
+  { src: "/img/lazer/02.jpg", alt: "PISCINA ADULTO COM DECK MOLHADO", label: "PISCINA ADULTO COM DECK MOLHADO" },
+  { src: "/img/lazer/03.jpg", alt: "QUADRA ESPORTIVA", label: "QUADRA ESPORTIVA" },
+  { src: "/img/lazer/04.jpg", alt: "SALÃO DE FESTAS", label: "SALÃO DE FESTAS" },
+  { src: "/img/lazer/05.jpg", alt: "ESPAÇO GRILL SOB PÉRGOLAS (CHURRASQUEIRA E FORNO À LENHA)", label: "ESPAÇO GRILL SOB PÉRGOLAS (CHURRASQUEIRA E FORNO À LENHA)" },
+  { src: "/img/lazer/06.jpg", alt: "FITNESS", label: "FITNESS" },
+  { src: "/img/lazer/07.jpg", alt: "SALÃO DE JOGOS", label: "SALÃO DE JOGOS" },
+  { src: "/img/lazer/08.jpg", alt: "Fitness", label: "FITNESS" },
+  { src: "/img/lazer/09.jpg", alt: "COWORKING", label: "COWORKING" },
+  { src: "/img/lazer/10.jpg", alt: "PLAYGROUND", label: "PLAYGROUND" },
+  { src: "/img/lazer/11.jpg", alt: "BRINQUEDOTECA", label: "BRINQUEDOTECA" },
+  { src: "/img/lazer/12.jpg", alt: "ESPAÇO PET", label: "ESPAÇO PET" },
+  { src: "/img/lazer/13.jpg", alt: "BICICLETÁRIO", label: "BICICLETÁRIO" },
+  { src: "/img/lazer/14.jpg", alt: "GARAGEM / SUBSOLO", label: "GARAGEM / SUBSOLO" },
 ];
 
 export default function SecaoLazer() {
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-
-  const nextSlide = useCallback(() => {
-    if (imagensLazer.length === 0) return;
-    setCurrentSlide((prev) => (prev === imagensLazer.length - 1 ? 0 : prev + 1));
-  }, []);
-
-  const prevSlide = () => {
-    if (imagensLazer.length === 0) return;
-    setCurrentSlide((prev) => (prev === 0 ? imagensLazer.length - 1 : prev - 1));
-  };
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    if (isPaused || imagensLazer.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slidesLazer.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
 
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 4000);
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slidesLazer.length);
+  };
 
-    return () => clearInterval(interval);
-  }, [nextSlide, isPaused]);
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slidesLazer.length) % slidesLazer.length);
+  };
 
   return (
-    <section 
-      id="lazer" 
-      className="py-16 md:py-24 text-white relative bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: "url('/img/fundo01.png')" }}
-    >
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 relative z-10">
-        
-        <div className="text-center mb-10 md:mb-14">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl uppercase tracking-wide leading-tight">
-            <span className="font-regular text-[#FFBA00] block mb-1">
-              LAZER E DIVERSÃO A QUALQUER HORA
-            </span>
-            <span className="font-bold text-[#fffffe] block">
-              PARA TODAS AS IDADES.
-            </span>
-          </h2>
-        </div>
+    <section id="lazer" className="relative w-full py-12 sm:py-16 md:py-24 overflow-hidden">
+      
+      {/* Fundo Full Width (Bolinhas) preenchendo toda a seção */}
+      <div 
+        className="absolute inset-0 w-full h-full pointer-events-none bg-no-repeat bg-cover bg-left-top z-0"
+        style={{ backgroundImage: "url('/img/fundo7.jpg')" }}
+      />
 
-        <div 
-          className="max-w-[1280px] mx-auto relative flex items-center justify-center px-8 sm:px-12 md:px-16"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onFocus={() => setIsPaused(true)}
-          onBlur={() => setIsPaused(false)}
-        >
-          <button 
+      {/* Contêiner Geral para delimitar o Carrossel e alinhar o Título */}
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 relative z-10">
+        
+        {/* Título da Seção */}
+        <h2 
+          className="text-[#9f59d1] font-medium text-center text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase tracking-wider mb-8 drop-shadow-sm max-w-4xl mx-auto"
+          style={{ fontFamily: "geometrica-sans-bold, sans-serif" }}
+        >          DESFRUTE DE UM VERDADEIRO CLUBE COM INÚMERAS OPÇÕES DE LAZER.
+        </h2>
+
+        {/* Carrossel Blocado (Limitado em largura e sem sombras) */}
+        <div className="relative w-full max-w-[1100px] mx-auto h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-gray-100 group">
+          
+          {slidesLazer.map((slide, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+            >
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                quality={100}
+                className="object-cover w-full h-full"
+                priority={index === 0}
+              />
+            </div>
+          ))}
+
+          {/* Seta Esquerda */}
+          <button
             onClick={prevSlide}
-            aria-label="Slide anterior"
-            className="absolute left-0 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 p-2 text-[#FFBA00] hover:text-white transition-all hover:scale-125 focus:outline-none"
+            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2.5 sm:p-3.5 backdrop-blur-sm transition-all hover:scale-105"
+            aria-label="Imagem anterior"
           >
-            <span className="text-2xl sm:text-3xl md:text-4xl font-black select-none">&lt;</span>
+            <svg className="w-5 h-5 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
 
-          <div className="w-full flex flex-col items-center">
-            <div className="relative w-full aspect-[16/9] sm:aspect-[16/10] md:aspect-[16/9] rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl bg-black/20 border-4 border-white/10 flex flex-col justify-between">
-              
-              <div className="relative w-full h-full overflow-hidden">
-                {imagensLazer.map((item, index) => (
-                  <Image
-                    key={item.src}
-                    src={item.src}
-                    alt={item.alt}
-                    fill
-                    sizes="(max-width: 1280px) 100vw, 1200px"
-                    priority={index === 0}
-                    className={`object-cover transition-opacity duration-700 ease-in-out ${
-                      index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-                    }`}
-                  />
-                ))}
-              </div>
+          {/* Seta Direita */}
+          <button
+            onClick={nextSlide}
+            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2.5 sm:p-3.5 backdrop-blur-sm transition-all hover:scale-105"
+            aria-label="Próxima imagem"
+          >
+            <svg className="w-5 h-5 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
-              <div className="relative z-20 w-full bg-gradient-to-r from-[#FFBA00] via-[#FF9E00] to-[#F77A2C] py-3 sm:py-4 px-6 text-center">
-                <p className="text-[#4A137B] font-black text-xs sm:text-sm md:text-base uppercase tracking-widest drop-shadow-sm">
-                  {imagensLazer[currentSlide]?.titulo}
-                </p>
-              </div>
-
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-6 z-30 px-4">
-              {imagensLazer.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  aria-label={`Ir para a imagem ${idx + 1}`}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                    currentSlide === idx ? "w-8 bg-[#FFBA00]" : "w-2.5 bg-white/40 hover:bg-white/70"
-                  }`}
-                />
-              ))}
-            </div>
+          {/* Indicadores de Bolinha na Base da Imagem */}
+          <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-1.5 sm:gap-2 px-4">
+            {slidesLazer.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`rounded-full transition-all ${
+                  currentSlide === index
+                    ? "bg-white w-3 h-3 sm:w-3.5 sm:h-3.5 scale-110"
+                    : "bg-white/50 hover:bg-white/80 w-2 h-2 sm:w-2.5 sm:h-2.5"
+                }`}
+                aria-label={`Ver imagem ${index + 1}`}
+              />
+            ))}
           </div>
 
-          <button 
-            onClick={nextSlide}
-            aria-label="Próximo slide"
-            className="absolute right-0 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 p-2 text-[#FFBA00] hover:text-white transition-all hover:scale-125 focus:outline-none"
-          >
-            <span className="text-3xl sm:text-4xl md:text-5xl font-black select-none">&gt;</span>
-          </button>
+        </div>
 
+        {/* Legenda no Canto Inferior Direito do Bloco */}
+        <div className="max-w-[1100px] mx-auto flex justify-end pt-2">
+          <span className="text-[#333333] font-extrabold text-xs sm:text-sm uppercase tracking-wider">
+            {slidesLazer[currentSlide].label}
+          </span>
         </div>
 
       </div>

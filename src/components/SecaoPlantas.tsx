@@ -1,307 +1,209 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
-interface SlideItem {
-  id: string;
-  src: string;
-  alt: string;
-}
-
-const galeriaPlantas: SlideItem[] = [
+// Lista de plantas de fácil personalização (Desktop e Mobile)
+const slidesPlantas = [
   {
-    id: "2 Dorms e Varanda Gourmet 34,60m2",
-    src: "/img/Planta Varanda Gourmet 34,60m.jpg",
-    alt: "Perspectiva ilustrativa - Lumini 3",
+    desktop: "/img/comprimido/PLANTAS/01.webp",
+    mobile: "/img/comprimido/PLANTAS/mobile/01.webp",
+    alt: "Planta Tipo 01 - 46m²",
   },
   {
-    id: "1 Dorm Living Ampliado 34,60m2",
-    src: "/img/Planta Varanda Gourmet 34,60m(2).jpg",
-    alt: "Perspectiva ilustrativa - Lumini 3",
+    desktop: "/img/comprimido/PLANTAS/02.webp",
+    mobile: "/img/comprimido/PLANTAS/mobile/02.webp",
+    alt: "Planta Tipo 02 - 46m²",
   },
   {
-    id: "3 Dorms (Suíte) 53,95m2",
-    src: "/img/Planta Varanda Gourmet 53,95m.jpg",
-    alt: "Perspectiva ilustrativa - Lumini 3",
+    desktop: "/img/comprimido/PLANTAS/03.webp",
+    mobile: "/img/comprimido/PLANTAS/mobile/03.webp",
+    alt: "Planta Tipo 03 - 46m²",
   },
   {
-    id: "2 Dorms (Suíte) Living Ampliado 53,95m2",
-    src: "/img/Planta Living Ampliado 53,95m.jpg",
-    alt: "Perspectiva ilustrativa - Lumini 3",
+    desktop: "/img/comprimido/PLANTAS/04.webp",
+    mobile: "/img/comprimido/PLANTAS/mobile/04.webp",
+    alt: "Planta Tipo 04 - 46m²",
   },
-];
-
-// Array simulando as imagens adicionais para a galeria clicável
-// Substitua pelas imagens reais do seu projeto
-const imagensGaleriaExtras: SlideItem[] = [
-  { id: "img-extra-1", src: "/img/Projeto Dormitorio 34,60m.jpg", alt: "Dormitorio 34,60m" },
-  { id: "img-extra-2", src: "/img/Projeto Dormitorio 53,95m.jpg", alt: "Dormitorio 53,95m" },
-  { id: "img-extra-3", src: "/img/Projeto Living 34,60m.jpg", alt: "Living 34,60m" },
-  { id: "img-extra-4", src: "/img/Projeto Living 53,95m.jpg", alt: "Living 53,95m" },
-  { id: "img-extra-5", src: "/img/Projeto Living Ampliado 34,60m.jpg", alt: "Living Ampliado 34,60m" },
-  { id: "img-extra-6", src: "/img/Projeto Living Ampliado 53,95m.jpg", alt: "Living Ampliado 53,95m" },
+  {
+    desktop: "/img/comprimido/PLANTAS/05.webp",
+    mobile: "/img/comprimido/PLANTAS/mobile/05.webp",
+    alt: "Planta Tipo 05 - 46m²",
+  },
+  {
+    desktop: "/img/comprimido/PLANTAS/06.webp",
+    mobile: "/img/comprimido/PLANTAS/mobile/06.webp",
+    alt: "Planta Tipo 06 - 46m²",
+  },
 ];
 
 export default function SecaoPlantas() {
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const nextSlide = useCallback(() => {
-    if (galeriaPlantas.length === 0) return;
-    setCurrentSlide((prev) => (prev === galeriaPlantas.length - 1 ? 0 : prev + 1));
-  }, []);
-
-  const prevSlide = () => {
-    if (galeriaPlantas.length === 0) return;
-    setCurrentSlide((prev) => (prev === 0 ? galeriaPlantas.length - 1 : prev - 1));
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slidesPlantas.length);
   };
 
-  useEffect(() => {
-    if (isPaused || galeriaPlantas.length <= 1) return;
-
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [nextSlide, isPaused]);
-
-  // Controles do Lightbox
-  const closeLightbox = () => setLightboxIndex(null);
-  
-  const lightboxNext = useCallback((e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (lightboxIndex !== null) {
-      setLightboxIndex((prev) => (prev === imagensGaleriaExtras.length - 1 ? 0 : (prev as number) + 1));
-    }
-  }, [lightboxIndex]);
-  
-  const lightboxPrev = useCallback((e?: React.MouseEvent) => {
-     if (e) e.stopPropagation();
-    if (lightboxIndex !== null) {
-      setLightboxIndex((prev) => (prev === 0 ? imagensGaleriaExtras.length - 1 : (prev as number) - 1));
-    }
-  }, [lightboxIndex]);
-
-   // Atalho de teclado para fechar/navegar o lightbox
-  useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (lightboxIndex === null) return;
-        if (e.key === "Escape") closeLightbox();
-        if (e.key === "ArrowRight") lightboxNext();
-        if (e.key === "ArrowLeft") lightboxPrev();
-      };
-      
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxIndex, lightboxNext, lightboxPrev]);
-
-  // Bloquear scroll quando lightbox aberto
-  useEffect(() => {
-    if (lightboxIndex !== null) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [lightboxIndex]);
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slidesPlantas.length) % slidesPlantas.length);
+  };
 
   return (
-    // AJUSTE AQUI: Trocado py-10 md:py-5 por pt-0 pb-10 md:pb-5 para remover o espaço superior
-    <section id="plantas" className="bg-white relative pt-0 pb-10 md:pb-5">
-      
-<div className="relative -mt-[20px] bg-gradient-to-r from-[#FFBA00] via-[#FF9E00] to-[#F77A2C] py-8 md:py-12 overflow-hidden mb-8 md:mb-12">        
-        <div className="max-w-[1440px] mx-auto px-6 md:px-12 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          
-          <div className="text-center md:text-left pl-0 md:pl-16">
-            <h2 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-[2.2rem] uppercase tracking-tight leading-snug">
-              <span className="font-regular block">
-                Plantas inteligentes para todos
-              </span>
-              <span className="font-bold block">
-                os gostos e necessidades.
-              </span>
-            </h2>
-          </div>
-
-          <div className="shrink-0">
-            <Image
-              src="/img/logowhite.png"
-              alt="Logo Lumini Residencial Clube 3"
-              width={180}
-              height={180}
-              className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 object-contain"
-              priority
-            />
-          </div>
-
-        </div>
-      </div>
-
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 relative z-10">
+    <section
+      id="plantas"
+      className="relative w-full pt-12 sm:pt-16 pb-8 md:pb-20 bg-cover bg-center bg-no-repeat overflow-hidden"
+      style={{ backgroundImage: "url('/img/comprimido/fundo1.webp')" }}
+    >
+      <div className="max-w-[1340px] mx-auto px-4 sm:px-6 md:px-8 relative z-10 flex flex-col items-center">
         
-        <div 
-          className="max-w-[1280px] mx-auto relative flex items-center justify-center px-4 sm:px-10 md:px-14"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onFocus={() => setIsPaused(true)}
-          onBlur={() => setIsPaused(false)}
+        {/* Título da Seção */}
+        <h2
+          className="text-[#0052a5] font-medium text-center text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase tracking-wider mb-8 sm:mb-12 max-w-4xl mx-auto drop-shadow-sm"
+          style={{ fontFamily: "geometrica-sans-bold, sans-serif" }}
         >
-          <button 
+          PLANTAS BEM PLANEJADAS COM ESPAÇOS TOTALMENTE APROVEITÁVEIS.
+        </h2>
+
+        {/* Área Central: Carrossel das Plantas */}
+        <div className="relative flex items-center justify-center w-full max-w-[1000px] mx-auto min-h-[360px] sm:min-h-[500px] lg:min-h-[580px]">
+          
+          {/* Seta Esquerda */}
+          <button
             onClick={prevSlide}
-            aria-label="Slide anterior"
-            className="absolute left-0 sm:left-1 md:left-2 top-1/2 -translate-y-1/2 z-30 p-2 text-[#4A137B] hover:text-[#FFBA00] transition-all hover:scale-125 focus:outline-none"
+            className="absolute left-1 sm:left-2 lg:-left-12 top-1/2 -translate-y-1/2 z-30 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2.5 sm:p-3.5 rounded-full transition-all hover:scale-105 shadow-md"
+            aria-label="Planta anterior"
           >
-            <span className="text-3xl sm:text-4xl md:text-5xl font-black select-none">&lt;</span>
+            <svg className="w-5 h-5 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
 
-          <div className="w-full flex flex-col items-center">
-            <div className="relative w-full aspect-[4/3] sm:aspect-[16/11] md:aspect-[16/10] bg-white overflow-hidden">
-              {galeriaPlantas.map((item, index) => (
+          {/* Imagem da Planta no Centro (Clicável) */}
+          <div 
+            onClick={() => setIsModalOpen(true)}
+            className="relative w-full max-w-[900px] h-[300px] sm:h-[460px] lg:h-[560px] flex items-center justify-center cursor-pointer group"
+            title="Clique para ampliar a planta"
+          >
+            {slidesPlantas.map((slide, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-opacity duration-500 ease-in-out flex items-center justify-center ${
+                  index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                }`}
+              >
+                {/* Desktop */}
                 <Image
-                  key={item.id}
-                  src={item.src}
-                  alt={item.alt}
+                  src={slide.desktop}
+                  alt={slide.alt}
                   fill
-                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  quality={100}
+                  className="hidden md:block object-contain w-full h-full transition-transform duration-300 group-hover:scale-[1.01]"
                   priority={index === 0}
-                  className={`object-contain transition-opacity duration-700 ease-in-out ${
-                    index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-                  }`}
                 />
-              ))}
-            </div>
+                {/* Mobile */}
+                <Image
+                  src={slide.mobile}
+                  alt={slide.alt}
+                  fill
+                  quality={100}
+                  className="block md:hidden object-contain w-full h-full transition-transform duration-300 group-hover:scale-[1.01]"
+                  priority={index === 0}
+                />
+              </div>
+            ))}
 
-            <div className="flex items-center gap-2 mt-6 z-30">
-              {galeriaPlantas.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  aria-label={`Ir para a imagem ${idx + 1}`}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                    currentSlide === idx ? "w-8 bg-[#4A137B]" : "w-2.5 bg-gray-300 hover:bg-gray-400"
-                  }`}
-                />
-              ))}
+            {/* Dica visual de clique */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-2xl flex items-center justify-center pointer-events-none z-20">
+              <span className="opacity-0 group-hover:opacity-100 bg-[#0052a5] text-white font-extrabold text-xs sm:text-sm px-4 py-2 rounded-full shadow-xl transition-all transform scale-95 group-hover:scale-100 uppercase tracking-wider flex items-center gap-2">
+                🔍 Clique para ampliar
+              </span>
             </div>
           </div>
 
-          <button 
+          {/* Seta Direita */}
+          <button
             onClick={nextSlide}
-            aria-label="Próximo slide"
-            className="absolute right-0 sm:right-1 md:right-2 top-1/2 -translate-y-1/2 z-30 p-2 text-[#4A137B] hover:text-[#FFBA00] transition-all hover:scale-125 focus:outline-none"
+            className="absolute right-1 sm:right-2 lg:-right-12 top-1/2 -translate-y-1/2 z-30 bg-[#0052a5]/80 hover:bg-[#0052a5] text-white p-2.5 sm:p-3.5 rounded-full transition-all hover:scale-105 shadow-md"
+            aria-label="Próxima planta"
           >
-            <span className="text-3xl sm:text-4xl md:text-5xl font-black select-none">&gt;</span>
+            <svg className="w-5 h-5 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
 
         </div>
-        
-        {/* ================= GALERIA CLICÁVEL (2 colunas x 3 linhas) ================= */}
-        <div className="max-w-[1280px] mx-auto mt-16 px-4">
-           <h3 className="text-2xl md:text-3xl font-bold text-center text-[#4A137B] mb-8">
-              Conheça os Detalhes
-           </h3>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-              {imagensGaleriaExtras.map((item, idx) => (
-                <div 
-                  key={item.id} 
-                  className="relative aspect-video cursor-pointer overflow-hidden rounded-xl group"
-                  onClick={() => setLightboxIndex(idx)}
-                >
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                     <span className="opacity-0 group-hover:opacity-100 text-white font-medium bg-black/50 px-4 py-2 rounded-full transition-opacity duration-300 backdrop-blur-sm">
-                        Ampliar
-                     </span>
-                  </div>
-                </div>
-              ))}
-           </div>
+
+        {/* Indicadores de Bolinha */}
+        <div className="flex items-center justify-center gap-2 mt-4 sm:mt-6 mb-6 relative z-20">
+          {slidesPlantas.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`rounded-full transition-all ${
+                currentSlide === index
+                  ? "bg-[#0052a5] w-3.5 h-3.5 scale-110 shadow-sm"
+                  : "bg-gray-400/60 hover:bg-gray-600 w-2.5 h-2.5"
+              }`}
+              aria-label={`Ver planta ${index + 1}`}
+            />
+          ))}
         </div>
 
-        <div className="max-w-[1100px] mx-auto mt-12 text-center">
-          <p className="text-[10px] sm:text-xs text-gray-500 font-normal leading-relaxed">
-            Móveis, utensílios, objetos de decoração, inclusive a vegetação apresentada são meramente ilustrativos, não fazendo parte integrante do contrato de compra e venda. As áreas comuns serão entregues conforme memorial descritivo. A vegetação apresentada é de porte adulto e na entrega do empreendimento poderá apresentar diferenças de tamanho e porte. Apesar de todo cuidado na obtenção das informações contidas neste material, elas não devem ser consideradas como parte integrante de qualquer contrato.
-          </p>
+        {/* Texto Legal de Rodapé (Full Width e Justificado no Mobile) */}
+        <p className="text-[11px] sm:text-[12px] md:text-[11px] text-gray-800 text-justify md:text-center leading-relaxed max-w-4xl mx-auto pt-2 sm:pt-4 relative z-20 font-medium w-full px-1 sm:px-0">
+          Planta ilustrada com sugestão de decoração. Móveis, utensílios, revestimentos e objetos de decoração são meramente decorativos e não integram o contrato de compra e venda, portanto não serão entregues. Acabamentos serão entregues conforme o memorial descritivo. A planta está aprovação como 1 Dormitório + escritório. Eventuais mudanças de layout são por conta do comprador.
+        </p>
+
+        {/* ================= ILUSTRAÇÃO DA FAMÍLIA NO MOBILE (Centralizada e Maior na Base) ================= */}
+        <div className="md:hidden relative z-20 w-full flex justify-center items-end mt-6">
+
         </div>
 
       </div>
 
-      {/* ================= LIGHTBOX (MODAL) ================= */}
-      {lightboxIndex !== null && (
+      {/* ================= ILUSTRAÇÃO DA FAMÍLIA NO DESKTOP (Canto Inferior Esquerdo) ================= */}
+      <div className="hidden md:flex absolute left-0 bottom-0 z-20 items-end justify-start pointer-events-none">
+        <div className="relative z-10 w-[280px] lg:w-[340px] mb-0 ml-0 leading-none">
+          <Image
+            src="/img/comprimido/pef-mac.webp"
+            alt="Família Nova Califórnia"
+            width={400}
+            height={400}
+            className="w-full h-auto object-contain block mb-0 ml-0"
+          />
+        </div>
+      </div>
+
+      {/* ================= MODAL DA PLANTA AMPLIADA ================= */}
+      {isModalOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-8"
-          onClick={closeLightbox}
-          role="dialog"
-          aria-modal="true"
+          className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200 cursor-zoom-out"
+          onClick={() => setIsModalOpen(false)}
         >
-          {/* Botão Fechar */}
-          <button 
-             className="absolute top-4 right-4 z-[60] text-white/70 hover:text-white p-2"
-             onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
-             aria-label="Fechar"
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="absolute top-4 right-6 text-white text-4xl sm:text-5xl font-light hover:text-[#fbd668] transition-colors focus:outline-none z-50"
+            aria-label="Fechar"
           >
-             <span className="text-4xl leading-none">&times;</span>
+            &times;
           </button>
-          
-          {/* Seta Anterior Lightbox */}
-           <button 
-             className="absolute left-4 z-[60] text-white/50 hover:text-white p-4"
-             onClick={lightboxPrev}
-             aria-label="Anterior"
-          >
-             <span className="text-4xl sm:text-6xl select-none">&lsaquo;</span>
-          </button>
-          
-          {/* Container Imagem Lightbox */}
+
           <div 
-            className="relative w-full max-w-6xl aspect-video md:aspect-[16/9] flex items-center justify-center"
+            className="relative w-full max-w-[1400px] max-h-[90vh] h-full flex items-center justify-center cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-                src={imagensGaleriaExtras[lightboxIndex].src}
-                alt={imagensGaleriaExtras[lightboxIndex].alt}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
+              src={slidesPlantas[currentSlide].desktop}
+              alt={slidesPlantas[currentSlide].alt}
+              width={1600}
+              height={1000}
+              quality={100}
+              className="w-full h-full object-contain"
             />
-            {/* Indicador Numérico Opcional */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm bg-black/50 px-3 py-1 rounded-full">
-                {lightboxIndex + 1} / {imagensGaleriaExtras.length}
-            </div>
           </div>
-          
-           {/* Seta Próxima Lightbox */}
-           <button 
-             className="absolute right-4 z-[60] text-white/50 hover:text-white p-4"
-             onClick={lightboxNext}
-             aria-label="Próximo"
-          >
-             <span className="text-4xl sm:text-6xl select-none">&rsaquo;</span>
-          </button>
         </div>
       )}
-
-      {/* Elemento na base da seção ajustado para bottom-0 */}
-      <div className="absolute bottom-0 left-0 h-full w-40 md:w-64 pointer-events-none opacity-80 z-0">
-        <Image
-          src="/img/petalas.png"
-          alt="Grafismo decorativo"
-          width={300}
-          height={300}
-          className="w-full h-full object-left-bottom object-contain"
-        />
-      </div>
 
     </section>
   );
