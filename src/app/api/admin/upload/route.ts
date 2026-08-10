@@ -38,7 +38,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             "video/mpeg",
             "video/3gpp"
           ],
-          maximumSizeInBytes: 500 * 1024 * 1024, // Limite de 500 MB por arquivo
+          maximumSizeInBytes: 500 * 1024 * 1024, // Limite de 500 MB
           tokenPayload: JSON.stringify({
             uploadedAt: new Date().toISOString(),
             clientPayload: clientPayload || null,

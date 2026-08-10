@@ -24,7 +24,7 @@ export default function UploadInterface() {
   const [loadingList, setLoadingList] = useState(true);
   const [filtroDataAdmin, setFiltroDataAdmin] = useState<string>("todas");
 
-  // Carrega a lista real de arquivos
+  // Carrega a lista real de arquivos do Vercel Blob
   const carregarArquivos = async () => {
     setLoadingList(true);
     try {
@@ -49,7 +49,7 @@ export default function UploadInterface() {
     if (ext === "zip" || ext === "rar") return "pacote_zip";
     if (ext === "pdf") return "lamina_pdf";
     if (["jpg", "jpeg", "png", "webp"].includes(ext || "")) return "imagem_avulsa";
-    if (["mp4", "mov", "webm", "avi"].includes(ext || "")) return "video";
+    if (["mp4", "mov", "webm", "avi", "m4v"].includes(ext || "")) return "video";
     return "imagem_avulsa";
   };
 
@@ -63,7 +63,7 @@ export default function UploadInterface() {
     }
   };
 
-  // Envio direto para o Vercel Blob (Sem limite de 4.5MB)
+  // Envio estruturado no formato: kit / dataUpload / categoria / nome
   const handleUpload = async () => {
     if (novosArquivos.length === 0) return;
     setUploading(true);
@@ -72,40 +72,26 @@ export default function UploadInterface() {
       let cont = 1;
       for (const item of novosArquivos) {
         const tamanhoMB = (item.file.size / (1024 * 1024)).toFixed(1);
-        setStatusUpload(`Enviando arquivo ${cont} de ${novosArquivos.length}: "${item.file.name}" (${tamanhoMB} MB)...`);
+        setStatusUpload(`Enviando (${cont}/${novosArquivos.length}): "${item.file.name}" (${tamanhoMB} MB)...`);
+
+        // Caminho estruturado exigido pela rota GET /api/kit
+        const pathnameEstruturado = `kit/${dataSelecao}/${item.categoria}/${item.file.name}`;
 
         // Upload direto do navegador para o Vercel Blob
-        const blob = await upload(item.file.name, item.file, {
+        await upload(pathnameEstruturado, item.file, {
           access: "public",
           handleUploadUrl: "/api/admin/upload",
-          clientPayload: JSON.stringify({
-            categoria: item.categoria,
-            dataUpload: dataSelecao,
-          }),
-        });
-
-        // Registra o item salvo no histórico
-        await fetch("/api/kit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: item.file.name,
-            categoria: item.categoria,
-            url: blob.url,
-            tamanho: `${tamanhoMB} MB`,
-            dataUpload: dataSelecao,
-          }),
         });
 
         cont++;
       }
 
-      alert("Arquivos e vídeos publicados com sucesso!");
+      alert("Arquivos publicados com sucesso!");
       setNovosArquivos([]);
       await carregarArquivos();
     } catch (err: any) {
       console.error("Falha no upload:", err);
-      alert(`Erro ao enviar: ${err.message || "Verifique se você fez o Redeploy na Vercel após adicionar as variáveis."}`);
+      alert(`Atenção ao enviar: ${err.message || "Erro no upload."}`);
     } finally {
       setUploading(false);
       setStatusUpload("");
@@ -149,7 +135,7 @@ export default function UploadInterface() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-gray-100">
           <div>
             <h2 className="text-xl font-bold text-gray-800">1. Novo Upload em Lote</h2>
-            <p className="text-sm text-gray-500">Selecione a data e envie imagens, PDFs ou vídeos pesados.</p>
+            <p className="text-sm text-gray-500">Selecione a data e envie imagens, PDFs, vídeos ou pacotes ZIP.</p>
           </div>
           <div className="flex items-center gap-3">
             <label className="text-sm font-semibold text-gray-700">Data da Versão:</label>
@@ -157,25 +143,25 @@ export default function UploadInterface() {
               type="date"
               value={dataSelecao}
               onChange={(e) => setDataSelecao(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-bold text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-[#1E293B]"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-bold text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-[#a96190]"
             />
           </div>
         </div>
 
-        <div className="border-2 border-dashed border-[#1E293B]/40 hover:border-[#1E293B] rounded-xl p-8 text-center hover:bg-[#1E293B]/5 transition-colors relative cursor-pointer">
+        <div className="border-2 border-dashed border-[#1E293B]/40 hover:border-[#a96190] rounded-xl p-8 text-center hover:bg-[#a96190]/5 transition-colors relative cursor-pointer">
           <input
             type="file"
             multiple
             onChange={handleFileSelect}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
-          <div className="w-12 h-12 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 bg-[#a96190]/10 text-[#a96190] rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
           <p className="text-gray-700 font-bold">Arraste os arquivos aqui ou clique para selecionar</p>
-          <p className="text-xs text-gray-400 mt-1">Suporta arquivos pesados (Vídeos, ZIPs, PDFs e Imagens).</p>
+          <p className="text-xs text-gray-400 mt-1">Classificação automática para ZIP, PDF, JPG/PNG e MP4/MOV.</p>
         </div>
 
         {novosArquivos.length > 0 && (
@@ -191,7 +177,7 @@ export default function UploadInterface() {
                     <span className="text-gray-400 text-[11px]">
                       ({(item.file.size / (1024 * 1024)).toFixed(1)} MB)
                     </span>
-                    <span className="bg-[#1E293B] text-white px-2 py-1 rounded text-[10px] font-bold uppercase">
+                    <span className="bg-[#a96190] text-white px-2 py-1 rounded text-[10px] font-bold uppercase">
                       {item.categoria.replace("_", " ")}
                     </span>
                   </div>
@@ -200,7 +186,7 @@ export default function UploadInterface() {
             </div>
 
             {statusUpload && (
-              <p className="text-xs font-bold text-[#DD6810] mb-3 animate-pulse">
+              <p className="text-xs font-bold text-[#a96190] mb-3 animate-pulse">
                 {statusUpload}
               </p>
             )}
@@ -208,9 +194,9 @@ export default function UploadInterface() {
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="w-full bg-[#DD6810] text-white font-bold py-3 rounded-lg hover:bg-[#c45a0d] transition-colors cursor-pointer disabled:opacity-50"
+              className="w-full bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold py-3 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              {uploading ? "Enviando para o Vercel Blob..." : "Confirmar e Publicar Todos"}
+              {uploading ? "Publicando no Vercel Blob..." : "Confirmar e Publicar Todos"}
             </button>
           </div>
         )}
@@ -264,7 +250,7 @@ export default function UploadInterface() {
                   itensFiltradosAdmin.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="p-3 font-semibold text-gray-800 truncate max-w-[200px]">
-                        <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-[#1E293B]">
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-[#a96190]">
                           {item.nome}
                         </a>
                       </td>

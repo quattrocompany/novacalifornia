@@ -18,7 +18,7 @@ export async function GET() {
     const items = blobs.map((blob) => {
       const parts = blob.pathname.split("/");
       
-      // Tenta extrair a estrutura: kit / dataUpload / categoria / nome
+      // Extrai a estrutura: kit / dataUpload / categoria / nome
       let dataUpload = "";
       let categoria = "imagem_avulsa";
       let nome = blob.pathname;

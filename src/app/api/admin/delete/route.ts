@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     await del(url, { token });
     console.log(">>> Arquivo deletado com sucesso do Vercel Blob:", url);
 
-    // 2. Deletar registro correspondente no Supabase (se existir)
+    // 2. Deletar registro no Supabase se configurado
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       const { error: dbError } = await supabase.from("kit_items").delete().eq("url", url);
 
       if (dbError) {
-        console.warn(">>> Aviso: Não foi possível deletar a referência do banco no Supabase:", dbError.message);
+        console.warn(">>> Aviso: Não foi possível deletar a referência no Supabase:", dbError.message);
       } else {
         console.log(">>> Registro removido com sucesso do Supabase.");
       }
