@@ -400,15 +400,6 @@ export default function KitCorretorPage() {
         <div className="w-full bg-[#a96190] py-14 px-6 text-center text-white">
           <div className="max-w-3xl mx-auto flex flex-col items-center">
             
-            {/* LOGO SOLTA E SEM SOMBRA */}
-            <div className="relative w-48 sm:w-64 h-16 sm:h-20 mb-6">
-              <Image
-                src="/img/logo350.png"
-                alt="Logo Nova Califórnia"
-                fill
-                className="object-contain"
-              />
-            </div>
 
             <p className="text-white/95 mb-8 text-sm md:text-base max-w-lg font-medium leading-relaxed">
               Acompanhe nossas redes sociais oficiais e acesse o site para ficar por dentro de todas as novidades, campanhas e materiais de divulgação!
