@@ -31,10 +31,21 @@ export default function KitCorretorPage() {
         const data = await res.json();
         
         if (data.items && data.items.length > 0) {
-          setItens(data.items);
-          const datas = Array.from(new Set(data.items.map((i: ItemKit) => i.dataUpload))).sort().reverse();
+          // Mapeia garantindo compatibilidade entre dataUpload (camelCase) e data_upload (snake_case)
+          const itemsFormatados: ItemKit[] = data.items.map((i: any) => ({
+            id: i.id || String(Math.random()),
+            nome: i.nome || "Material",
+            categoria: i.categoria || "imagem_avulsa",
+            url: i.url || "#",
+            tamanho: i.tamanho || "0 MB",
+            dataUpload: i.dataUpload || i.data_upload || "2026-08-10",
+          }));
+
+          setItens(itemsFormatados);
+
+          const datas = Array.from(new Set(itemsFormatados.map((i) => i.dataUpload))).sort().reverse();
           if (datas.length > 0) {
-            setDataFiltro(datas[0] as string);
+            setDataFiltro(datas[0]);
           }
         } else {
           setItens(imagensPadraoFallback);
@@ -65,9 +76,9 @@ export default function KitCorretorPage() {
     <main className="min-h-screen bg-gray-50 flex flex-col justify-between">
       
       <div>
-        {/* BANNER SUPERIOR NOVA CALIFÓRNIA COM BLUR E ENQUADRADO EM 1440PX */}
+        {/* BANNER SUPERIOR COM EFEITO BLUR E MAX-WIDTH DE 1440PX */}
         <div className="w-full relative overflow-hidden bg-[#a96190]">
-          {/* Fundo Desfocado (Preenche telas ultrawide sem esticar o banner) */}
+          {/* Fundo Desfocado Ultrawide */}
           <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
             <Image
               src="/img/hero.jpg"
@@ -78,7 +89,7 @@ export default function KitCorretorPage() {
             />
           </div>
 
-          {/* Banner Principal Enquadrado em 1440px */}
+          {/* Banner Central Enquadrado */}
           <div className="relative z-10 w-full max-w-[1440px] mx-auto pt-16 sm:pt-0">
             <Image
               src="/img/hero.jpg"
@@ -92,8 +103,8 @@ export default function KitCorretorPage() {
           </div>
         </div>
 
-        {/* CONTEÚDO PRINCIPAL */}
-        <div className="max-w-[1200px] mx-auto px-6 py-12">
+        {/* CONTEÚDO PRINCIPAL (1440px) */}
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-12">
           
           <div className="mb-12 text-center">
             <h1 className="text-3xl md:text-5xl font-black text-[#1E293B] uppercase tracking-tight mb-4">
@@ -120,6 +131,8 @@ export default function KitCorretorPage() {
               <a
                 href={pacotesZip[0].url}
                 download
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full sm:w-auto bg-[#a96190] hover:bg-[#8e4e78] text-white font-black py-4 px-8 rounded-full shadow-lg hover:scale-105 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-3 cursor-pointer whitespace-nowrap"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +144,7 @@ export default function KitCorretorPage() {
           )}
 
           {/* BOXES DE DOWNLOADS SEPARADOS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             
             {/* Box 1: ZIP */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
@@ -143,7 +156,7 @@ export default function KitCorretorPage() {
               <h3 className="text-xl font-bold text-gray-800 mb-2">Imagens e Perspectivas</h3>
               <p className="text-sm text-gray-500 mb-6 flex-1">Renders em alta resolução da fachada, lazer e decorado.</p>
               {pacotesZip.length > 0 ? (
-                <a href={pacotesZip[0].url} download className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4e78] transition-colors text-sm text-center">
+                <a href={pacotesZip[0].url} download target="_blank" rel="noopener noreferrer" className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4e78] transition-colors text-sm text-center cursor-pointer">
                   Baixar Pacote (.ZIP)
                 </a>
               ) : (
@@ -163,7 +176,7 @@ export default function KitCorretorPage() {
               <h3 className="text-xl font-bold text-gray-800 mb-2">Lâmina e Plantas</h3>
               <p className="text-sm text-gray-500 mb-6 flex-1">Apresentação comercial e todas as plantas baixas cotadas.</p>
               {laminasPdf.length > 0 ? (
-                <a href={laminasPdf[0].url} download className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4e78] transition-colors text-sm text-center">
+                <a href={laminasPdf[0].url} download target="_blank" rel="noopener noreferrer" className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4e78] transition-colors text-sm text-center cursor-pointer">
                   Baixar Caderno (.PDF)
                 </a>
               ) : (
@@ -184,7 +197,7 @@ export default function KitCorretorPage() {
               <h3 className="text-xl font-bold text-gray-800 mb-2">Vídeos e Reels</h3>
               <p className="text-sm text-gray-500 mb-6 flex-1">Vídeos promocionais prontos para postar no Instagram e WhatsApp.</p>
               {videos.length > 0 ? (
-                <a href={videos[0].url} download className="w-full bg-[#1E293B] text-white font-bold py-3 rounded-full hover:bg-[#0f172a] transition-colors text-sm text-center">
+                <a href={videos[0].url} download target="_blank" rel="noopener noreferrer" className="w-full bg-[#1E293B] text-white font-bold py-3 rounded-full hover:bg-[#0f172a] transition-colors text-sm text-center cursor-pointer">
                   Baixar Vídeos (.MP4)
                 </a>
               ) : (
@@ -247,7 +260,9 @@ export default function KitCorretorPage() {
                       <a
                         href={img.url}
                         download
-                        className="bg-[#a96190] text-white p-3 rounded-full hover:bg-white hover:text-[#a96190] transition-colors transform hover:scale-110 shadow-lg"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#a96190] text-white p-3 rounded-full hover:bg-white hover:text-[#a96190] transition-colors transform hover:scale-110 shadow-lg cursor-pointer"
                         title={`Baixar ${img.nome}`}
                       >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,7 +306,7 @@ export default function KitCorretorPage() {
                 href="https://www.novacalifornia.com.br"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-[#f9d150] hover:bg-[#e2bd3f] text-[#a96190] font-black px-8 py-3.5 rounded-full text-sm transition-all shadow-lg flex items-center gap-2 hover:scale-105"
+                className="bg-[#f9d150] hover:bg-[#e2bd3f] text-[#a96190] font-black px-8 py-3.5 rounded-full text-sm transition-all shadow-lg flex items-center gap-2 hover:scale-105 cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
@@ -301,12 +316,12 @@ export default function KitCorretorPage() {
 
               {/* Redes Sociais */}
               <div className="flex items-center gap-3 mt-2 sm:mt-0">
-                <a href="https://www.instagram.com/novacaliforniabarueri/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white/10 hover:bg-[#f9d150] hover:text-[#a96190] flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="Instagram">
+                <a href="https://www.instagram.com/novacaliforniabarueri/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white/10 hover:bg-[#f9d150] hover:text-[#a96190] flex items-center justify-center transition-all hover:scale-110 shadow-lg cursor-pointer" title="Instagram">
                   <svg className="w-5 h-5 text-white hover:text-[#a96190]" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
                   </svg>
                 </a>
-                <a href="https://www.facebook.com/novacaliforniabarueri/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white/10 hover:bg-[#f9d150] hover:text-[#a96190] flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="Facebook">
+                <a href="https://www.facebook.com/novacaliforniabarueri/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white/10 hover:bg-[#f9d150] hover:text-[#a96190] flex items-center justify-center transition-all hover:scale-110 shadow-lg cursor-pointer" title="Facebook">
                   <svg className="w-5 h-5 text-white hover:text-[#a96190]" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                   </svg>
