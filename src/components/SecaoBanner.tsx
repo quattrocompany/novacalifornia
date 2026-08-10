@@ -33,17 +33,19 @@ export default function SecaoBanner() {
         </div>
       </div>
 
-      {/* Box do Empreendimento */}
-      <div className="absolute top-24 sm:top-28 md:top-20 lg:top-24 max-w-[1440px] mx-auto px-4 sm:px-6 md:px-12 w-full flex flex-col items-end md:items-center z-20 pointer-events-none">
-        <span className="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[11px] sm:text-xs md:text-sm font-extrabold text-[#a96190] uppercase tracking-wider sm:tracking-widest shadow-md border border-white/60 inline-block pointer-events-auto">
-          Jardim Califórnia • Barueri
-        </span>
-      </div>
-
-      {/* Imagem do Hero Principal (Sharp) */}
+      {/* ================= HERO PRINCIPAL FLUIDO E PROPORCIONAL ================= */}
       <div className="w-full relative z-10 flex flex-col items-center justify-start px-0">
+        
         {/* Banner Desktop */}
-        <div className="hidden md:flex w-full max-w-[1920px] justify-center items-start">
+        <div className="hidden md:flex w-full max-w-[1920px] relative justify-center items-start">
+          
+          {/* Badge do Empreendimento - Posicionamento em % e Fonte Fluida */}
+          <div className="absolute top-[13%] left-0 right-0 w-full flex justify-center z-20 pointer-events-none px-4">
+            <span className="bg-white/90 backdrop-blur-md px-[2vw] lg:px-4 py-[0.5vw] lg:py-1.5 rounded-full text-[1.1vw] lg:text-xs font-extrabold text-[#a96190] uppercase tracking-wider sm:tracking-widest shadow-md border border-white/60 inline-block pointer-events-auto transition-all">
+              Jardim Califórnia • Barueri
+            </span>
+          </div>
+
           <Image 
             src="/img/hero.jpg" 
             alt="Nova Califórnia - 2 Dorms • Terraço • 1 Vaga" 
@@ -56,7 +58,15 @@ export default function SecaoBanner() {
         </div>
 
         {/* Banner Mobile */}
-        <div className="flex flex-col md:hidden w-full items-center justify-start">
+        <div className="flex flex-col md:hidden w-full relative items-center justify-start">
+          
+          {/* Badge do Empreendimento Mobile */}
+          <div className="absolute top-[22%] left-0 right-0 w-full flex justify-center z-20 pointer-events-none px-4">
+            <span className="bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full text-[2.8vw] sm:text-xs font-extrabold text-[#a96190] uppercase tracking-wider shadow-md border border-white/60 inline-block pointer-events-auto">
+              Jardim Califórnia • Barueri
+            </span>
+          </div>
+
           <Image 
             src="/img/01-mobile.jpg" 
             alt="Nova Califórnia - 2 Dorms • Terraço • 1 Vaga" 
@@ -67,6 +77,7 @@ export default function SecaoBanner() {
             priority
           />
         </div>
+
       </div>
     </section>
   );
