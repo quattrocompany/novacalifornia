@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -60,24 +62,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
-    // 3. Enviar E-mail via Nodemailer (com AWAIT para não cancelar na Vercel)
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    // 3. Enviar E-mail via Resend API usando o domínio verificado
+    if (process.env.RESEND_API_KEY) {
       try {
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT) || 465,
-          secure: Number(process.env.SMTP_PORT) === 465,
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
-          connectionTimeout: 8000,
-        });
-
-        await transporter.sendMail({
-          from: `"Site Nova Califórnia" <${process.env.SMTP_USER}>`,
-          to: "estandenovacalifornia@gmail.com",
-          replyTo: (email && email.includes("@")) ? email : process.env.SMTP_USER,
+        const { data: emailData, error: emailErr } = await resend.emails.send({
+          from: "Site Nova Califórnia <contato@novacalifornia.com.br>", // <-- E-mail com o domínio verificado
+          to: ["estandenovacalifornia@gmail.com"],
+          replyTo: (email && email.includes("@")) ? email : undefined,
           subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
           html: `
             <h2>Novo contato recebido pelo site Nova Califórnia</h2>
@@ -91,12 +82,16 @@ export async function POST(request: Request) {
           `,
         });
 
-        console.log(">>> E-MAIL DISPARADO COM SUCESSO PARA ESTANDENOVACALIFORNIA@GMAIL.COM");
-      } catch (emailErr) {
-        console.error(">>> ERRO AO ENVIAR E-MAIL SMTP:", emailErr);
+        if (emailErr) {
+          console.error(">>> ERRO RESEND:", emailErr);
+        } else {
+          console.log(">>> E-MAIL DISPARADO VIA RESEND COM SUCESSO:", emailData);
+        }
+      } catch (resendError) {
+        console.error(">>> ERRO EXCEÇÃO RESEND:", resendError);
       }
     } else {
-      console.warn(">>> AVISO: Variáveis de SMTP_HOST, SMTP_USER ou SMTP_PASS ausentes.");
+      console.warn(">>> AVISO: RESEND_API_KEY não foi encontrada nas variáveis de ambiente.");
     }
 
     return NextResponse.json({ success: true, message: "Lead processado com sucesso!", data: dbData }, { status: 200 });
