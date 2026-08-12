@@ -70,7 +70,16 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
       });
     }
 
-    const mensagemTexto = encodeURIComponent(`Olá! Meu nome é ${formData.name}. Gostaria de mais informações sobre o Nova Califórnia Barueri.`);
+    // MONTA A MENSAGEM DO WHATSAPP COM TODOS OS DADOS DO CLIENTE
+    const textoMensagem = 
+`Olá! Gostaria de mais informações sobre o Nova Califórnia Barueri.
+
+*Dados de contato:*
+• *Nome:* ${formData.name}
+• *E-mail:* ${emailLimpo}
+• *Telefone:* ${formData.whatsapp}`;
+
+    const mensagemTexto = encodeURIComponent(textoMensagem);
     const waUrl = `https://api.whatsapp.com/send?phone=5511971200175&text=${mensagemTexto}`;
 
     setFormData({ name: "", email: "", whatsapp: "" });
@@ -78,7 +87,7 @@ export default function ModalWhatsapp({ isOpen, onClose }: ModalWhatsappProps) {
     onClose();
 
     if (typeof window !== "undefined") {
-      window.location.href = waUrl;
+      window.open(waUrl, "_blank");
     }
   };
 

@@ -65,42 +65,42 @@ export async function POST(request: Request) {
 
     console.log(">>> LEAD SALVO NO SUPABASE COM SUCESSO:", dbData);
 
-    // 3. Enviar E-mail via Nodemailer em segundo plano
+    // 3. Enviar E-mail via Nodemailer (Aguardando a execução completa)
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      (async () => {
-        try {
-          const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT) || 465,
-            secure: Number(process.env.SMTP_PORT) === 465,
-            auth: {
-              user: process.env.SMTP_USER,
-              pass: process.env.SMTP_PASS,
-            },
-            connectionTimeout: 5000,
-          });
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT) || 465,
+          secure: Number(process.env.SMTP_PORT) === 465,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+          connectionTimeout: 5000,
+        });
 
-          await transporter.sendMail({
-            from: `"Site Nova Califórnia" <${process.env.SMTP_USER}>`,
-            to: "estandenovacalifornia@gmail.com",
-            replyTo: email,
-            subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
-            html: `
-              <h2>Novo contato recebido pelo site Nova Califórnia</h2>
-              <p><strong>Nome:</strong> ${nome}</p>
-              <p><strong>E-mail:</strong> ${email}</p>
-              <p><strong>Telefone:</strong> ${telefone}</p>
-              <p><strong>Origem:</strong> ${isWhatsapp ? "Atendimento WhatsApp" : "Formulário de Contato"}</p>
-              <br/>
-              <p><strong>Mensagem:</strong></p>
-              <p>${(mensagem || "").replace(/\n/g, "<br/>")}</p>
-            `,
-          });
-          console.log(">>> E-MAIL ENVIADO COM SUCESSO");
-        } catch (emailErr) {
-          console.error(">>> AVISO ENVIO DE EMAIL (SMTP):", emailErr);
-        }
-      })();
+        await transporter.sendMail({
+          from: `"Site Nova Califórnia" <${process.env.SMTP_USER}>`,
+          to: "estandenovacalifornia@gmail.com",
+          replyTo: email,
+          subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
+          html: `
+            <h2>Novo contato recebido pelo site Nova Califórnia</h2>
+            <p><strong>Nome:</strong> ${nome}</p>
+            <p><strong>E-mail:</strong> ${email}</p>
+            <p><strong>Telefone:</strong> ${telefone}</p>
+            <p><strong>Origem:</strong> ${isWhatsapp ? "Atendimento WhatsApp" : "Formulário de Contato"}</p>
+            <br/>
+            <p><strong>Mensagem:</strong></p>
+            <p>${(mensagem || "").replace(/\n/g, "<br/>")}</p>
+          `,
+        });
+        console.log(">>> E-MAIL ENVIADO COM SUCESSO");
+      } catch (emailErr) {
+        console.error(">>> AVISO ENVIO DE EMAIL (SMTP):", emailErr);
+      }
+    } else {
+      console.warn(">>> AVISO: Variáveis de SMTP não encontradas no ambiente atual.");
     }
 
     return NextResponse.json({ success: true, message: "Lead processado com sucesso!", data: dbData }, { status: 200 });
