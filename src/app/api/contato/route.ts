@@ -9,11 +9,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { nome, email, telefone, mensagem, captcha, via } = body;
 
-    console.log(">>> NOVO LEAD NOVA CALIFÓRNIA RECEBIDO:", { nome, email, telefone, via });
+    console.log(">>> NOVO LEAD RECEBIDO:", { nome, email, telefone, via });
 
-    const isWhatsapp = via === "whatsapp" || mensagem === "Contato via modal WhatsApp";
+    const isWhatsapp = via === "whatsapp" || via === "modal_whatsapp" || mensagem === "Contato via modal WhatsApp";
 
-    // 1. Tentar validar reCAPTCHA (Apenas se NÃO for WhatsApp e tiver captcha)
+    // 1. Tentar validar reCAPTCHA (se fornecido)
     if (!isWhatsapp && captcha && process.env.RECAPTCHA_SECRET_KEY) {
       try {
         const params = new URLSearchParams({
@@ -21,14 +21,11 @@ export async function POST(request: Request) {
           response: captcha,
         });
 
-        const recaptchaRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+        await fetch("https://www.google.com/recaptcha/api/siteverify", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: params.toString(),
         });
-
-        const recaptchaJson = await recaptchaRes.json();
-        console.log(">>> RECAPTCHA GOOGLE:", recaptchaJson);
       } catch (captchaErr) {
         console.error(">>> ERRO CONSULTA RECAPTCHA:", captchaErr);
       }
@@ -53,7 +50,7 @@ export async function POST(request: Request) {
           email: email || "Não informado",
           telefone: telefone || "Não informado",
           mensagem: mensagem || (isWhatsapp ? "WhatsApp" : "Contato via site Nova Califórnia"),
-          origem: isWhatsapp ? "WhatsApp" : "Formulário de Contato - Nova Califórnia",
+          origem: isWhatsapp ? "WhatsApp Modal" : "Formulário Site - Nova Califórnia",
         },
       ])
       .select();
@@ -63,9 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
-    console.log(">>> LEAD SALVO NO SUPABASE COM SUCESSO:", dbData);
-
-    // 3. Enviar E-mail via Nodemailer (Aguardando a execução completa)
+    // 3. Enviar E-mail via Nodemailer (com AWAIT para não cancelar na Vercel)
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       try {
         const transporter = nodemailer.createTransport({
@@ -76,31 +71,32 @@ export async function POST(request: Request) {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
           },
-          connectionTimeout: 5000,
+          connectionTimeout: 8000,
         });
 
         await transporter.sendMail({
           from: `"Site Nova Califórnia" <${process.env.SMTP_USER}>`,
           to: "estandenovacalifornia@gmail.com",
-          replyTo: email,
+          replyTo: (email && email.includes("@")) ? email : process.env.SMTP_USER,
           subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
           html: `
             <h2>Novo contato recebido pelo site Nova Califórnia</h2>
             <p><strong>Nome:</strong> ${nome}</p>
             <p><strong>E-mail:</strong> ${email}</p>
             <p><strong>Telefone:</strong> ${telefone}</p>
-            <p><strong>Origem:</strong> ${isWhatsapp ? "Atendimento WhatsApp" : "Formulário de Contato"}</p>
+            <p><strong>Origem:</strong> ${isWhatsapp ? "Atendimento WhatsApp" : "Formulário do Site"}</p>
             <br/>
             <p><strong>Mensagem:</strong></p>
-            <p>${(mensagem || "").replace(/\n/g, "<br/>")}</p>
+            <p>${(mensagem || "Sem mensagem informada").replace(/\n/g, "<br/>")}</p>
           `,
         });
-        console.log(">>> E-MAIL ENVIADO COM SUCESSO");
+
+        console.log(">>> E-MAIL DISPARADO COM SUCESSO PARA ESTANDENOVACALIFORNIA@GMAIL.COM");
       } catch (emailErr) {
-        console.error(">>> AVISO ENVIO DE EMAIL (SMTP):", emailErr);
+        console.error(">>> ERRO AO ENVIAR E-MAIL SMTP:", emailErr);
       }
     } else {
-      console.warn(">>> AVISO: Variáveis de SMTP não encontradas no ambiente atual.");
+      console.warn(">>> AVISO: Variáveis de SMTP_HOST, SMTP_USER ou SMTP_PASS ausentes.");
     }
 
     return NextResponse.json({ success: true, message: "Lead processado com sucesso!", data: dbData }, { status: 200 });

@@ -196,7 +196,7 @@ export default function SecaoContato() {
               />
             </div>
 
-            <div className="w-full max-w-[140px] sm:max-w-[170px] flex justify-center transition-transform hover:scale-105">
+            <div className="w-full max-w-[144px] sm:max-w-[170px] flex justify-center transition-transform hover:scale-105">
               <Image
                 src="/img/mcmv2.png"
                 alt="Minha Casa Minha Vida"
