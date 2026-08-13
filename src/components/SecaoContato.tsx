@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -14,16 +14,28 @@ export default function SecaoContato() {
   });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [utms, setUtms] = useState({ source: "", medium: "", campaign: "", content: "", term: "" });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setUtms({
+        source: params.get("utm_source") || "",
+        medium: params.get("utm_medium") || "",
+        campaign: params.get("utm_campaign") || "",
+        content: params.get("utm_content") || "",
+        term: params.get("utm_term") || "",
+      });
+    }
+  }, []);
 
   const maskPhone = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
     if (!digits) return "";
     if (digits.length <= 2) return `(${digits}`;
     if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10) {
-      return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    }
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 3)} ${digits.slice(3, 7)}-${digits.slice(7)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
   };
 
   const sanitizeEmail = (email: string) => {
@@ -58,6 +70,7 @@ export default function SecaoContato() {
           telefone: formData.telefone,
           mensagem: formData.mensagem,
           via: "formulario_site",
+          utms: utms,
         }),
       });
 
