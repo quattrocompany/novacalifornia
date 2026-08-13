@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function SecaoContato() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -72,11 +74,10 @@ export default function SecaoContato() {
         });
       }
 
-      setStatus({
-        type: "success",
-        message: "Cadastro realizado com sucesso! Em breve entraremos em contato.",
-      });
       setFormData({ nome: "", email: "", telefone: "", mensagem: "" });
+
+      // Redireciona para a página de confirmação
+      router.push("/confirmacao-contato");
     } catch (error: any) {
       setStatus({
         type: "error",
@@ -177,8 +178,8 @@ export default function SecaoContato() {
                 </button>
               </div>
 
-              {status && (
-                <p className={`text-xs font-bold mt-2 text-center sm:text-left ${status.type === "success" ? "text-emerald-700" : "text-red-600"}`}>
+              {status && status.type === "error" && (
+                <p className="text-xs font-bold mt-2 text-center sm:text-left text-red-600">
                   {status.message}
                 </p>
               )}
@@ -211,4 +212,4 @@ export default function SecaoContato() {
       </div>
     </section>
   );
-} 
+}
