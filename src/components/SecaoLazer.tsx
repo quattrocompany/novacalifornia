@@ -5,20 +5,20 @@ import Image from "next/image";
 
 // Lista de imagens do Lazer
 const slidesLazer = [
-  { src: "/img/lazer/01.jpg", alt: "PISCINA ADULTO COM DECK MOLHADO", label: "PISCINA ADULTO COM DECK MOLHADO" },
-  { src: "/img/lazer/02.jpg", alt: "PISCINA ADULTO COM DECK MOLHADO", label: "PISCINA ADULTO COM DECK MOLHADO" },
-  { src: "/img/lazer/03.jpg", alt: "QUADRA ESPORTIVA", label: "QUADRA ESPORTIVA" },
-  { src: "/img/lazer/04.jpg", alt: "SALÃO DE FESTAS", label: "SALÃO DE FESTAS" },
-  { src: "/img/lazer/05.jpg", alt: "ESPAÇO GRILL SOB PÉRGOLAS (CHURRASQUEIRA E FORNO À LENHA)", label: "ESPAÇO GRILL SOB PÉRGOLAS (CHURRASQUEIRA E FORNO À LENHA)" },
-  { src: "/img/lazer/06.jpg", alt: "FITNESS", label: "FITNESS" },
-  { src: "/img/lazer/07.jpg", alt: "SALÃO DE JOGOS", label: "SALÃO DE JOGOS" },
-  { src: "/img/lazer/08.jpg", alt: "Fitness", label: "FITNESS" },
-  { src: "/img/lazer/09.jpg", alt: "COWORKING", label: "COWORKING" },
-  { src: "/img/lazer/10.jpg", alt: "PLAYGROUND", label: "PLAYGROUND" },
-  { src: "/img/lazer/11.jpg", alt: "BRINQUEDOTECA", label: "BRINQUEDOTECA" },
-  { src: "/img/lazer/12.jpg", alt: "ESPAÇO PET", label: "ESPAÇO PET" },
-  { src: "/img/lazer/13.jpg", alt: "BICICLETÁRIO", label: "BICICLETÁRIO" },
-  { src: "/img/lazer/14.jpg", alt: "GARAGEM / SUBSOLO", label: "GARAGEM / SUBSOLO" },
+  { src: "/img/LAZER/01.jpg", alt: "PISCINA ADULTO COM DECK MOLHADO", label: "PISCINA ADULTO COM DECK MOLHADO" },
+  { src: "/img/LAZER/02.jpg", alt: "PISCINA ADULTO COM DECK MOLHADO", label: "PISCINA ADULTO COM DECK MOLHADO" },
+  { src: "/img/LAZER/03.jpg", alt: "QUADRA ESPORTIVA", label: "QUADRA ESPORTIVA" },
+  { src: "/img/LAZER/04.jpg", alt: "SALÃO DE FESTAS", label: "SALÃO DE FESTAS" },
+  { src: "/img/LAZER/05.jpg", alt: "ESPAÇO GRILL SOB PÉRGOLAS (CHURRASQUEIRA E FORNO À LENHA)", label: "ESPAÇO GRILL SOB PÉRGOLAS (CHURRASQUEIRA E FORNO À LENHA)" },
+  { src: "/img/LAZER/06.jpg", alt: "FITNESS", label: "FITNESS" },
+  { src: "/img/LAZER/07.jpg", alt: "SALÃO DE JOGOS", label: "SALÃO DE JOGOS" },
+  { src: "/img/LAZER/08.jpg", alt: "Fitness", label: "FITNESS" },
+  { src: "/img/LAZER/09.jpg", alt: "COWORKING", label: "COWORKING" },
+  { src: "/img/LAZER/10.jpg", alt: "PLAYGROUND", label: "PLAYGROUND" },
+  { src: "/img/LAZER/11.jpg", alt: "BRINQUEDOTECA", label: "BRINQUEDOTECA" },
+  { src: "/img/LAZER/12.jpg", alt: "ESPAÇO PET", label: "ESPAÇO PET" },
+  { src: "/img/LAZER/13.jpg", alt: "BICICLETÁRIO", label: "BICICLETÁRIO" },
+  { src: "/img/LAZER/14.jpg", alt: "GARAGEM / SUBSOLO", label: "GARAGEM / SUBSOLO" },
 ];
 
 export default function SecaoLazer() {
