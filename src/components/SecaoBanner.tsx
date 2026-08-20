@@ -78,9 +78,9 @@ export default function SecaoBanner() {
         {/* Banner Mobile */}
         <div className="flex flex-col md:hidden w-full relative items-center justify-start">
           
-          {/* Badge Mobile */}
-          <div className="absolute top-[16%] left-0 right-0 w-full flex justify-center z-20 pointer-events-none px-4">
-            <span className="bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full text-[2.8vw] sm:text-xs font-extrabold text-[#a96190] uppercase tracking-wider shadow-md border border-white/60 inline-block pointer-events-auto">
+          {/* Badge Mobile (Alinhado à direita com a margem do hambúrguer) */}
+          <div className="absolute top-[15%] right-4 sm:right-6 z-20 pointer-events-none flex justify-end">
+            <span className="bg-white/90 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-extrabold text-[#a96190] uppercase tracking-wider shadow-md border border-white/60 inline-block pointer-events-auto">
               Jardim Califórnia • Barueri
             </span>
           </div>
