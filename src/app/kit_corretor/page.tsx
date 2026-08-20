@@ -79,11 +79,9 @@ export default function KitCorretorPage() {
   const videos = itensFiltrados.filter(isVideoItem);
   const imagensAvulsas = itensFiltrados.filter(isImageItem);
 
-  // Função para agrupar e baixar os arquivos automaticamente em formato ZIP
   const handleBaixarZipAutomatico = async (arquivosParaZip: ItemKit[], nomeArquivoZip: string) => {
     if (arquivosParaZip.length === 0) return;
 
-    // Se já existe um pacote .ZIP cadastrado pelo Admin para esta data, baixa diretamente
     const zipExistente = arquivosParaZip.find((i) => i.categoria === "pacote_zip" || i.url.toLowerCase().endsWith(".zip"));
     if (zipExistente) {
       const a = document.createElement("a");
@@ -94,7 +92,6 @@ export default function KitCorretorPage() {
       return;
     }
 
-    // Criação dinâmica do arquivo .ZIP usando JSZip
     setDownloadingZip(true);
     try {
       const JSZip = (await import("jszip")).default;
@@ -160,7 +157,6 @@ export default function KitCorretorPage() {
         {/* CONTEÚDO PRINCIPAL */}
         <div className="max-w-[1200px] mx-auto px-6 py-12">
           
-          {/* TÍTULO E FILTRO DE DATAS NO TOPO DE TUDO */}
           <div className="mb-12 text-center">
             <h1 className="text-3xl md:text-5xl font-black text-[#1E293B] uppercase tracking-tight mb-4">
               Kit Corretor
@@ -169,7 +165,6 @@ export default function KitCorretorPage() {
               Reunimos todo o conteúdo de apoio em um só lugar para você ter sempre à mão. Use sem moderação!
             </p>
 
-            {/* SELETOR DE VERSÃO POSICIONADO NO TOPO */}
             {datasDisponiveis.length > 0 && (
               <div className="inline-flex items-center gap-3 bg-white border border-gray-200 px-5 py-2.5 rounded-2xl shadow-sm">
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Histórico de Atualizações:</span>
@@ -213,14 +208,34 @@ export default function KitCorretorPage() {
             </div>
           )}
 
-          {/* BOXES DE DOWNLOADS SEPARADOS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* BOXES DE DOWNLOADS SEPARADOS (GRID DE 4 CARDS) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            {/* Box 1: IMAGENS */}
+            {/* Box 1: TABELA DE PREÇOS */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-[#a96190]/10 text-[#a96190] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Tabela de Preços</h3>
+              <p className="text-sm text-gray-500 mb-6 flex-1">Tabela de vendas oficial com fluxos de pagamento e valores das unidades.</p>
+              <a
+                href="/pdf/TABELA_NOVACALIFORNIA_190826.pdf"
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-[#a96190] text-white font-bold py-3 rounded-full hover:bg-[#8e4f78] transition-colors text-sm text-center"
+              >
+                Baixar Tabela (.PDF)
+              </a>
+            </div>
+
+            {/* Box 2: IMAGENS */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">Imagens e Perspectivas</h3>
@@ -241,7 +256,7 @@ export default function KitCorretorPage() {
               )}
             </div>
 
-            {/* Box 2: LÂMINA PDF */}
+            {/* Box 3: LÂMINA PDF */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +283,7 @@ export default function KitCorretorPage() {
               )}
             </div>
 
-            {/* Box 3: VÍDEOS */}
+            {/* Box 4: VÍDEOS */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-[#1E293B]/10 text-[#1E293B] rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,7 +415,6 @@ export default function KitCorretorPage() {
         <div className="w-full bg-[#a96190] py-14 px-6 text-center text-white">
           <div className="max-w-3xl mx-auto flex flex-col items-center">
             
-
             <p className="text-white/95 mb-8 text-sm md:text-base max-w-lg font-medium leading-relaxed">
               Acompanhe nossas redes sociais oficiais e acesse o site para ficar por dentro de todas as novidades, campanhas e materiais de divulgação!
             </p>
