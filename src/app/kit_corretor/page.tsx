@@ -12,12 +12,8 @@ interface ItemKit {
   dataUpload: string;
 }
 
-const imagensPadraoFallback: ItemKit[] = [
-  { id: "f1", url: "/img/hero.jpg", nome: "Fachada Principal", categoria: "imagem_avulsa", tamanho: "3.2 MB", dataUpload: "2026-08-10" },
-  { id: "f2", url: "/img/02.jpg", nome: "Portaria Central", categoria: "imagem_avulsa", tamanho: "2.8 MB", dataUpload: "2026-08-10" },
-  { id: "f3", url: "/img/metragem.png", nome: "Plantas e Metragem", categoria: "imagem_avulsa", tamanho: "1.5 MB", dataUpload: "2026-08-10" },
-  { id: "f4", url: "/img/mcmv2.png", nome: "Minha Casa Minha Vida", categoria: "imagem_avulsa", tamanho: "1.1 MB", dataUpload: "2026-08-10" },
-];
+// Array fallback esvaziado para evitar exibição de cards quebrados
+const imagensPadraoFallback: ItemKit[] = [];
 
 export default function KitCorretorPage() {
   const [itens, setItens] = useState<ItemKit[]>([]);
@@ -41,7 +37,7 @@ export default function KitCorretorPage() {
           setItens(imagensPadraoFallback);
         }
       } catch (e) {
-        console.error("Erro ao carregar do servidor, utilizando imagens padrão:", e);
+        console.error("Erro ao carregar do servidor:", e);
         setItens(imagensPadraoFallback);
       } finally {
         setLoading(false);
@@ -250,7 +246,7 @@ export default function KitCorretorPage() {
                   Baixar Pacote (.ZIP)
                 </button>
               ) : (
-                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
+                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm cursor-not-allowed">
                   Indisponível
                 </button>
               )}
@@ -277,7 +273,7 @@ export default function KitCorretorPage() {
                   Baixar Caderno (.PDF)
                 </a>
               ) : (
-                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
+                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm cursor-not-allowed">
                   Indisponível
                 </button>
               )}
@@ -303,7 +299,7 @@ export default function KitCorretorPage() {
                   {downloadingZip ? "Gerando ZIP..." : "Baixar Vídeos (.ZIP)"}
                 </button>
               ) : (
-                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm">
+                <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-full text-sm cursor-not-allowed">
                   Indisponível
                 </button>
               )}
@@ -368,7 +364,7 @@ export default function KitCorretorPage() {
             {loading ? (
               <p className="text-center py-10 text-gray-400 font-medium">Carregando imagens...</p>
             ) : imagensAvulsas.length === 0 ? (
-              <p className="text-center py-10 text-gray-400 font-medium">Nenhuma imagem avulsa encontrada para esta data.</p>
+              <p className="text-center py-10 text-gray-400 font-medium">Nenhum arquivo publicado até o momento.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                 {imagensAvulsas.map((img) => (
