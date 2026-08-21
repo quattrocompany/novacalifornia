@@ -1,53 +1,62 @@
-import { list } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import { storage } from "@/lib/firebase";
+import { ref, listAll, getDownloadURL, getMetadata } from "firebase/storage";
 
 export const dynamic = "force-dynamic";
 
+// Identificador único deste empreendimento no Firebase Storage
+const EMPREENDIMENTO_ID = "nova-california";
+
 export async function GET() {
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    const rootRef = ref(storage, EMPREENDIMENTO_ID);
 
-    if (!token) {
-      console.error(">>> ERRO: BLOB_READ_WRITE_TOKEN não configurado.");
-      return NextResponse.json({ items: [], error: "Token do Blob ausente." }, { status: 500 });
-    }
+    // Varre recursivamente todas as subpastas da pasta nova-california
+    const listRecursive = async (folderRef: any) => {
+      const res = await listAll(folderRef);
+      let filesList: any[] = [];
 
-    // Listar todos os arquivos do Vercel Blob
-    const { blobs } = await list({ token });
-
-    const items = blobs.map((blob) => {
-      const parts = blob.pathname.split("/");
-      
-      // Extrai a estrutura: kit / dataUpload / categoria / nome
-      let dataUpload = "";
-      let categoria = "imagem_avulsa";
-      let nome = blob.pathname;
-
-      if (parts.length >= 4) {
-        dataUpload = parts[1] || "";
-        categoria = parts[2] || "imagem_avulsa";
-        nome = parts[3] || blob.pathname;
-      } else {
-        nome = parts[parts.length - 1] || blob.pathname;
+      for (const folder of res.prefixes) {
+        const subFiles = await listRecursive(folder);
+        filesList = [...filesList, ...subFiles];
       }
 
-      // Formatar tamanho em MB
-      const tamanhoMB = (blob.size / (1024 * 1024)).toFixed(1);
+      for (const itemRef of res.items) {
+        const url = await getDownloadURL(itemRef);
+        const meta = await getMetadata(itemRef);
+        const sizeMB = (meta.size / (1024 * 1024)).toFixed(1) + " MB";
 
-      return {
-        id: blob.url,
-        url: blob.url,
-        nome: nome,
-        categoria: categoria,
-        dataUpload: dataUpload || new Date(blob.uploadedAt).toISOString().split("T")[0],
-        tamanho: `${tamanhoMB} MB`,
-        uploadedAt: blob.uploadedAt,
-      };
-    });
+        const ext = itemRef.name.split(".").pop()?.toLowerCase();
+        let categoria = meta.customMetadata?.categoria;
+        
+        if (!categoria) {
+          if (ext === "zip" || ext === "rar") categoria = "pacote_zip";
+          else if (ext === "pdf") categoria = "lamina_pdf";
+          else if (["jpg", "jpeg", "png", "webp"].includes(ext || "")) categoria = "imagem_avulsa";
+          else if (["mp4", "mov", "webm", "avi", "m4v"].includes(ext || "")) categoria = "video";
+          else categoria = "imagem_avulsa";
+        }
+
+        filesList.push({
+          id: itemRef.fullPath,
+          nome: itemRef.name,
+          categoria: categoria,
+          url: url,
+          tamanho: sizeMB,
+          dataUpload: meta.customMetadata?.dataUpload || meta.timeCreated.split("T")[0],
+        });
+      }
+      return filesList;
+    };
+
+    const items = await listRecursive(rootRef);
 
     return NextResponse.json({ items }, { status: 200 });
   } catch (error: any) {
-    console.error(">>> Erro ao listar arquivos do Vercel Blob:", error);
-    return NextResponse.json({ items: [], error: error?.message || "Erro ao buscar do Blob." }, { status: 500 });
+    console.error(">>> ERRO AO LISTAR KIT NOVA CALIFÓRNIA DO FIREBASE:", error);
+    return NextResponse.json(
+      { error: error?.message || "Erro ao buscar arquivos do Firebase." },
+      { status: 500 }
+    );
   }
 }

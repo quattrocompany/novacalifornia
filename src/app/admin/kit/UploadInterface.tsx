@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { upload } from "@vercel/blob/client";
+import { storage } from "@/lib/firebase";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  listAll,
+  deleteObject,
+  getMetadata,
+} from "firebase/storage";
 
 interface ItemKit {
   id: string;
@@ -10,13 +18,17 @@ interface ItemKit {
   url: string;
   tamanho: string;
   dataUpload: string;
+  fullPath: string;
 }
+
+// Identificador único deste empreendimento no Firebase
+const EMPREENDIMENTO_ID = "nova-california";
 
 export default function UploadInterface() {
   const [dataSelecao, setDataSelecao] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
-  
+
   const [itensCadastrados, setItensCadastrados] = useState<ItemKit[]>([]);
   const [novosArquivos, setNovosArquivos] = useState<{ file: File; categoria: string }[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -24,17 +36,42 @@ export default function UploadInterface() {
   const [loadingList, setLoadingList] = useState(true);
   const [filtroDataAdmin, setFiltroDataAdmin] = useState<string>("todas");
 
-  // Carrega a lista real de arquivos do Vercel Blob
+  // Carrega a lista de arquivos diretamente do Firebase Storage
   const carregarArquivos = async () => {
     setLoadingList(true);
     try {
-      const res = await fetch("/api/kit");
-      const data = await res.json();
-      if (res.ok && data.items) {
-        setItensCadastrados(data.items);
-      }
+      const rootRef = ref(storage, EMPREENDIMENTO_ID);
+      const listRecursive = async (folderRef: any): Promise<ItemKit[]> => {
+        const res = await listAll(folderRef);
+        let filesList: ItemKit[] = [];
+
+        for (const folder of res.prefixes) {
+          const subFiles = await listRecursive(folder);
+          filesList = [...filesList, ...subFiles];
+        }
+
+        for (const itemRef of res.items) {
+          const url = await getDownloadURL(itemRef);
+          const meta = await getMetadata(itemRef);
+          const sizeMB = (meta.size / (1024 * 1024)).toFixed(1) + " MB";
+
+          filesList.push({
+            id: itemRef.fullPath,
+            nome: itemRef.name,
+            categoria: meta.customMetadata?.categoria || autoDetectarCategoria(itemRef.name),
+            url: url,
+            tamanho: sizeMB,
+            dataUpload: meta.customMetadata?.dataUpload || meta.timeCreated.split("T")[0],
+            fullPath: itemRef.fullPath,
+          });
+        }
+        return filesList;
+      };
+
+      const todos = await listRecursive(rootRef);
+      setItensCadastrados(todos);
     } catch (e) {
-      console.error("Erro ao carregar arquivos:", e);
+      console.error("Erro ao carregar arquivos do Firebase:", e);
     } finally {
       setLoadingList(false);
     }
@@ -63,7 +100,6 @@ export default function UploadInterface() {
     }
   };
 
-  // Envio estruturado no formato: kit / dataUpload / categoria / nome
   const handleUpload = async () => {
     if (novosArquivos.length === 0) return;
     setUploading(true);
@@ -74,19 +110,36 @@ export default function UploadInterface() {
         const tamanhoMB = (item.file.size / (1024 * 1024)).toFixed(1);
         setStatusUpload(`Enviando (${cont}/${novosArquivos.length}): "${item.file.name}" (${tamanhoMB} MB)...`);
 
-        // Caminho estruturado exigido pela rota GET /api/kit
-        const pathnameEstruturado = `kit/${dataSelecao}/${item.categoria}/${item.file.name}`;
+        const storagePath = `${EMPREENDIMENTO_ID}/${dataSelecao}/${item.categoria}/${item.file.name}`;
+        const fileRef = ref(storage, storagePath);
 
-        // Upload direto do navegador para o Vercel Blob
-        await upload(pathnameEstruturado, item.file, {
-          access: "public",
-          handleUploadUrl: "/api/admin/upload",
+        const metadata = {
+          customMetadata: {
+            categoria: item.categoria,
+            dataUpload: dataSelecao,
+            empreendimento: EMPREENDIMENTO_ID,
+          },
+        };
+
+        const uploadTask = uploadBytesResumable(fileRef, item.file, metadata);
+
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on(
+            "state_changed",
+            (snapshot: any) => {
+              const fileProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setStatusUpload(`Enviando (${cont}/${novosArquivos.length}): "${item.file.name}" - ${fileProgress.toFixed(0)}%`);
+            },
+            (error: any) => reject(error),
+            () => {
+              cont++;
+              resolve();
+            }
+          );
         });
-
-        cont++;
       }
 
-      alert("Arquivos publicados com sucesso!");
+      alert("Arquivos publicados com sucesso no Firebase!");
       setNovosArquivos([]);
       await carregarArquivos();
     } catch (err: any) {
@@ -98,22 +151,16 @@ export default function UploadInterface() {
     }
   };
 
-  const handleDeletar = async (url: string) => {
-    if (confirm("Tem certeza que deseja apagar este arquivo do servidor?")) {
+  const handleDeletar = async (fullPath: string) => {
+    if (confirm("Tem certeza que deseja apagar este arquivo do Firebase?")) {
       try {
-        const res = await fetch("/api/admin/delete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
-        });
-
-        if (res.ok) {
-          await carregarArquivos();
-        } else {
-          alert("Erro ao excluir o arquivo.");
-        }
+        const fileRef = ref(storage, fullPath);
+        await deleteObject(fileRef);
+        alert("Arquivo excluído com sucesso!");
+        await carregarArquivos();
       } catch (err) {
-        alert("Erro de conexão ao tentar excluir.");
+        console.error("Erro ao excluir:", err);
+        alert("Erro ao excluir o arquivo.");
       }
     }
   };
@@ -196,7 +243,7 @@ export default function UploadInterface() {
               disabled={uploading}
               className="w-full bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold py-3 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              {uploading ? "Publicando no Vercel Blob..." : "Confirmar e Publicar Todos"}
+              {uploading ? "Publicando no Firebase Storage..." : "Confirmar e Publicar Todos"}
             </button>
           </div>
         )}
@@ -207,7 +254,7 @@ export default function UploadInterface() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-gray-800">2. Materiais Publicados</h2>
-            <p className="text-sm text-gray-500">Gerencie ou exclua arquivos do histórico no servidor.</p>
+            <p className="text-sm text-gray-500">Gerencie ou exclua arquivos hospedados no Firebase Storage.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -226,7 +273,7 @@ export default function UploadInterface() {
         </div>
 
         {loadingList ? (
-          <p className="text-sm text-gray-500 text-center py-6">Carregando arquivos do servidor...</p>
+          <p className="text-sm text-gray-500 text-center py-6">Carregando arquivos do Nova Califórnia...</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-gray-600">
@@ -263,7 +310,7 @@ export default function UploadInterface() {
                       <td className="p-3 text-gray-400">{item.tamanho}</td>
                       <td className="p-3 text-right">
                         <button
-                          onClick={() => handleDeletar(item.url)}
+                          onClick={() => handleDeletar(item.fullPath)}
                           className="text-red-500 hover:text-red-700 font-bold hover:underline cursor-pointer"
                         >
                           Excluir
