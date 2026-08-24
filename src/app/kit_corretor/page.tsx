@@ -18,16 +18,10 @@ export default function KitCorretorPage() {
   const [tipoImagem, setTipoImagem] = useState<string>("todas");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
     async function carregarKit() {
       try {
-        const res = await fetch(`/api/kit?t=${new Date().getTime()}`, {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
-        
+        const res = await fetch("/api/kit");
         const data = await res.json();
         
         if (data.items && Array.isArray(data.items)) {
