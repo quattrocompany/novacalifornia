@@ -50,11 +50,20 @@ export default function KitCorretorPage() {
     return i.dataUpload === dataFiltro;
   });
 
-  const tabelasPdf = itensFiltrados.filter(
+  // Busca na data selecionada; se não houver PDF nessa data específica, busca no acervo geral
+  const tabelasElegiveis = itensFiltrados.some(
+    (i) => i.categoria === "tabela_precos" || i.nome.toLowerCase().includes("tabela")
+  ) ? itensFiltrados : itens;
+
+  const tabelasPdf = tabelasElegiveis.filter(
     (i) => i.categoria === "tabela_precos" || i.nome.toLowerCase().includes("tabela")
   );
   
-  const laminasPdf = itensFiltrados.filter(
+  const laminasElegiveis = itensFiltrados.some(
+    (i) => i.categoria === "lamina_pdf" || i.nome.toLowerCase().includes("book") || i.nome.toLowerCase().includes("lamina")
+  ) ? itensFiltrados : itens;
+
+  const laminasPdf = laminasElegiveis.filter(
     (i) => i.categoria === "lamina_pdf" || i.nome.toLowerCase().includes("book") || i.nome.toLowerCase().includes("lamina")
   );
 
@@ -101,7 +110,7 @@ export default function KitCorretorPage() {
             </p>
           </div>
 
-          {/* 2 RETÂNGULOS COMPACTOS */}
+          {/* 2 RETÂNGULOS COMPACTOS DEDICADOS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-16">
             
             {/* Retângulo 1: TABELA DE PREÇOS */}
