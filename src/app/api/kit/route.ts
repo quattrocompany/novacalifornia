@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { storage } from "@/lib/firebase";
-import { ref, listAll, getDownloadURL } from "firebase/storage";
+import { ref, listAll, getDownloadURL, getMetadata } from "firebase/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -17,33 +17,44 @@ export async function GET() {
       const subFolderResults = await Promise.all(subFolderPromises);
       const subFiles = subFolderResults.flat();
 
-      // Busca APENAS a URL do arquivo. Categoria e Data são lidos direto da estrutura de pastas!
       const itemPromises = res.items.map(async (itemRef) => {
-        const url = await getDownloadURL(itemRef);
-
-        // Estrutura do caminho: nova-california/YYYY-MM-DD/categoria/nome.ext
-        const parts = itemRef.fullPath.split("/");
-        const dataUpload = parts.length >= 3 ? parts[1] : new Date().toISOString().split("T")[0];
-        const categoriaPasta = parts.length >= 4 ? parts[2] : "imagem_avulsa";
+        const [url, meta] = await Promise.all([
+          getDownloadURL(itemRef),
+          getMetadata(itemRef).catch(() => null),
+        ]);
 
         const nameLower = itemRef.name.toLowerCase();
         const ext = nameLower.split(".").pop() || "";
-        let categoria = categoriaPasta;
+        
+        let categoria = meta?.customMetadata?.categoria;
 
-        if (ext === "zip" || ext === "rar") categoria = "pacote_zip";
-        else if (ext === "pdf") {
-          if (nameLower.includes("tabela")) categoria = "tabela_precos";
-          else categoria = "lamina_pdf";
-        } else if (["mp4", "mov", "webm", "avi", "m4v"].includes(ext)) {
-          categoria = "video";
+        if (!categoria) {
+          if (ext === "zip" || ext === "rar") categoria = "pacote_zip";
+          else if (ext === "pdf") {
+            if (nameLower.includes("tabela")) categoria = "tabela_precos";
+            else categoria = "lamina_pdf";
+          } else if (["mp4", "mov", "webm", "avi", "m4v"].includes(ext)) {
+            categoria = "video";
+          } else if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
+            if (nameLower.includes("story")) categoria = "imagem_story";
+            else if (nameLower.includes("feed")) categoria = "imagem_feed";
+            else categoria = "imagem_avulsa";
+          } else {
+            categoria = "imagem_avulsa";
+          }
         }
+
+        const parts = itemRef.fullPath.split("/");
+        const dataUpload = 
+          meta?.customMetadata?.dataUpload || 
+          (meta?.timeCreated ? meta.timeCreated.split("T")[0] : parts[1] || new Date().toISOString().split("T")[0]);
 
         return {
           id: itemRef.fullPath,
           nome: itemRef.name,
           categoria,
           url,
-          tamanho: "PDF / Mídia",
+          tamanho: meta?.size ? (meta.size / (1024 * 1024)).toFixed(1) + " MB" : "PDF / Mídia",
           dataUpload,
         };
       });
@@ -54,13 +65,12 @@ export async function GET() {
 
     const items = await listRecursive(rootRef);
 
-    // Cache inteligente de 10 segundos: instantâneo para o corretor e atualiza quase em tempo real
     return NextResponse.json(
       { items },
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=59",
+          "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
         },
       }
     );
