@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { storage } from "@/lib/firebase";
+import { ref, listAll, getDownloadURL, getMetadata } from "firebase/storage";
 
 interface ItemKit {
   id: string;
@@ -12,6 +14,8 @@ interface ItemKit {
   dataUpload: string;
 }
 
+const EMPREENDIMENTO_ID = "nova-california";
+
 export default function KitCorretorPage() {
   const [itens, setItens] = useState<ItemKit[]>([]);
   const [dataFiltro, setDataFiltro] = useState<string>("todas");
@@ -20,22 +24,71 @@ export default function KitCorretorPage() {
 
   useEffect(() => {
     async function carregarKit() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/kit");
-        const data = await res.json();
-        
-        if (data.items && Array.isArray(data.items)) {
-          setItens(data.items);
-          const datas = Array.from(new Set(data.items.map((i: ItemKit) => i.dataUpload))).sort().reverse();
-          if (datas.length > 0) {
-            setDataFiltro(datas[0] as string);
-          }
-        } else {
-          setItens([]);
+        const rootRef = ref(storage, EMPREENDIMENTO_ID);
+
+        const listRecursive = async (folderRef: any): Promise<ItemKit[]> => {
+          const res = await listAll(folderRef);
+
+          const subFolderPromises = res.prefixes.map((folder) => listRecursive(folder));
+          const subFolderResults = await Promise.all(subFolderPromises);
+          const subFiles = subFolderResults.flat();
+
+          const itemPromises = res.items.map(async (itemRef) => {
+            const [url, meta] = await Promise.all([
+              getDownloadURL(itemRef),
+              getMetadata(itemRef).catch(() => null),
+            ]);
+
+            const nameLower = itemRef.name.toLowerCase();
+            const ext = nameLower.split(".").pop() || "";
+            let categoria = meta?.customMetadata?.categoria;
+
+            if (!categoria) {
+              if (ext === "zip" || ext === "rar") categoria = "pacote_zip";
+              else if (ext === "pdf") {
+                if (nameLower.includes("tabela")) categoria = "tabela_precos";
+                else categoria = "lamina_pdf";
+              } else if (["mp4", "mov", "webm", "avi", "m4v"].includes(ext)) {
+                categoria = "video";
+              } else if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
+                if (nameLower.includes("story")) categoria = "imagem_story";
+                else if (nameLower.includes("feed")) categoria = "imagem_feed";
+                else categoria = "imagem_avulsa";
+              } else {
+                categoria = "imagem_avulsa";
+              }
+            }
+
+            const parts = itemRef.fullPath.split("/");
+            const dataUpload =
+              meta?.customMetadata?.dataUpload ||
+              (meta?.timeCreated ? meta.timeCreated.split("T")[0] : parts[1] || new Date().toISOString().split("T")[0]);
+
+            return {
+              id: itemRef.fullPath,
+              nome: itemRef.name,
+              categoria,
+              url,
+              tamanho: meta?.size ? (meta.size / (1024 * 1024)).toFixed(1) + " MB" : "PDF / Mídia",
+              dataUpload,
+            };
+          });
+
+          const currentFiles = await Promise.all(itemPromises);
+          return [...subFiles, ...currentFiles];
+        };
+
+        const todos = await listRecursive(rootRef);
+        setItens(todos);
+
+        const datas = Array.from(new Set(todos.map((i) => i.dataUpload))).sort().reverse();
+        if (datas.length > 0) {
+          setDataFiltro(datas[0]);
         }
       } catch (e) {
-        console.error("Erro ao carregar do servidor:", e);
-        setItens([]);
+        console.error("Erro ao carregar arquivos do Firebase:", e);
       } finally {
         setLoading(false);
       }
@@ -50,7 +103,6 @@ export default function KitCorretorPage() {
     return i.dataUpload === dataFiltro;
   });
 
-  // Busca na data selecionada; se não houver PDF nessa data específica, busca no acervo geral
   const tabelasElegiveis = itensFiltrados.some(
     (i) => i.categoria === "tabela_precos" || i.nome.toLowerCase().includes("tabela")
   ) ? itensFiltrados : itens;
@@ -58,7 +110,7 @@ export default function KitCorretorPage() {
   const tabelasPdf = tabelasElegiveis.filter(
     (i) => i.categoria === "tabela_precos" || i.nome.toLowerCase().includes("tabela")
   );
-  
+
   const laminasElegiveis = itensFiltrados.some(
     (i) => i.categoria === "lamina_pdf" || i.nome.toLowerCase().includes("book") || i.nome.toLowerCase().includes("lamina")
   ) ? itensFiltrados : itens;
@@ -67,7 +119,7 @@ export default function KitCorretorPage() {
     (i) => i.categoria === "lamina_pdf" || i.nome.toLowerCase().includes("book") || i.nome.toLowerCase().includes("lamina")
   );
 
-  const midiasGaleria = itensFiltrados.filter((i) => 
+  const midiasGaleria = itensFiltrados.filter((i) =>
     ["imagem_avulsa", "imagem_feed", "imagem_story", "video"].includes(i.categoria)
   );
 
@@ -78,14 +130,13 @@ export default function KitCorretorPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col justify-between font-sans">
-      
       <div>
         {/* BANNER SUPERIOR */}
         <div className="w-full relative z-10 pt-16 sm:pt-0 bg-[#a96190]">
           <div className="relative w-full max-w-[1920px] mx-auto">
             <Image
               src="/img/testeiranc.jpg"
-              alt="Kit Corretor"
+              alt="Kit Corretor Nova Califórnia"
               width={1920}
               height={350}
               quality={100}
@@ -100,7 +151,6 @@ export default function KitCorretorPage() {
 
         {/* CONTEÚDO PRINCIPAL (1440px) */}
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-10">
-          
           <div className="mb-10 text-center">
             <h1 className="text-3xl md:text-5xl font-black text-[#1E293B] uppercase tracking-tight mb-3">
               Kit Corretor
@@ -112,7 +162,6 @@ export default function KitCorretorPage() {
 
           {/* 2 RETÂNGULOS COMPACTOS DEDICADOS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-16">
-            
             {/* Retângulo 1: TABELA DE PREÇOS */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4 text-center sm:text-left w-full sm:w-auto">
@@ -166,8 +215,8 @@ export default function KitCorretorPage() {
                   Carregando PDF...
                 </button>
               ) : laminasPdf.length > 0 ? (
-                <a 
-                  href={laminasPdf[0].url} 
+                <a
+                  href={laminasPdf[0].url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold py-3 px-6 rounded-full transition-colors text-xs text-center whitespace-nowrap shadow-sm cursor-pointer"
@@ -180,7 +229,6 @@ export default function KitCorretorPage() {
                 </button>
               )}
             </div>
-
           </div>
 
           {/* GALERIA UNIFICADA DE MÍDIAS */}
@@ -195,28 +243,27 @@ export default function KitCorretorPage() {
 
               {datasDisponiveis.length > 0 && (
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4">
-                  
                   {/* ABAS DE CATEGORIA */}
                   <div className="flex items-center bg-gray-100 p-1 rounded-lg">
-                    <button 
+                    <button
                       onClick={() => setTipoImagem("todas")}
                       className={`px-3.5 py-1.5 text-xs font-bold rounded-md transition-all ${tipoImagem === "todas" ? "bg-white shadow-sm text-[#a96190]" : "text-gray-500 hover:text-gray-700"}`}
                     >
                       Todas
                     </button>
-                    <button 
+                    <button
                       onClick={() => setTipoImagem("imagem_feed")}
                       className={`px-3.5 py-1.5 text-xs font-bold rounded-md transition-all ${tipoImagem === "imagem_feed" ? "bg-white shadow-sm text-[#a96190]" : "text-gray-500 hover:text-gray-700"}`}
                     >
                       Feed
                     </button>
-                    <button 
+                    <button
                       onClick={() => setTipoImagem("imagem_story")}
                       className={`px-3.5 py-1.5 text-xs font-bold rounded-md transition-all ${tipoImagem === "imagem_story" ? "bg-white shadow-sm text-[#a96190]" : "text-gray-500 hover:text-gray-700"}`}
                     >
                       Story
                     </button>
-                    <button 
+                    <button
                       onClick={() => setTipoImagem("video")}
                       className={`px-3.5 py-1.5 text-xs font-bold rounded-md transition-all ${tipoImagem === "video" ? "bg-white shadow-sm text-[#a96190]" : "text-gray-500 hover:text-gray-700"}`}
                     >
@@ -268,7 +315,7 @@ export default function KitCorretorPage() {
                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     )}
-                    
+
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 pointer-events-none group-hover:pointer-events-auto">
                       <span className="text-white font-bold mb-4 text-center text-xs md:text-sm px-2 truncate w-full">
                         {item.nome}
@@ -289,7 +336,6 @@ export default function KitCorretorPage() {
               </div>
             )}
           </div>
-          
         </div>
       </div>
 
@@ -300,7 +346,7 @@ export default function KitCorretorPage() {
             <p className="text-white/95 mb-8 text-sm md:text-base max-w-lg font-medium leading-relaxed">
               Acompanhe nossas redes sociais oficiais e acesse o site para ficar por dentro de todas as novidades, campanhas e materiais de divulgação!
             </p>
-            
+
             <div className="flex flex-row items-center gap-3 justify-center flex-wrap">
               <a
                 href="https://www.novacalifornia.com.br"
@@ -320,7 +366,6 @@ export default function KitCorretorPage() {
           </p>
         </div>
       </div>
-
     </main>
   );
 }
