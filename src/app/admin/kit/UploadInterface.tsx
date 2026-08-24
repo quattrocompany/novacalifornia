@@ -24,9 +24,17 @@ interface ItemKit {
 
 const EMPREENDIMENTO_ID = "nova-california";
 
+// Compressão segura (Agora ignora PDFs, ZIPs e Vídeos instantaneamente)
 const comprimirImagem = (file: File, maxWidth = 1920, quality = 0.8): Promise<File> => {
   return new Promise((resolve) => {
-    if (!file || file.size === 0 || !file.type.startsWith("image/") || file.type.includes("gif") || file.type.includes("svg")) {
+    // Se não for imagem (PDF, ZIP, Video, etc), devolve o arquivo original NA HORA
+    if (
+      !file || 
+      file.size === 0 || 
+      !file.type.startsWith("image/") || 
+      file.type.includes("gif") || 
+      file.type.includes("svg")
+    ) {
       return resolve(file);
     }
 
@@ -264,7 +272,9 @@ export default function UploadInterface() {
       let concluidos = 0;
 
       for (const item of novosArquivos) {
+        // Se for PDF ou ZIP, a compressão vai ignorar instantaneamente
         const arquivoParaUpload = await comprimirImagem(item.file);
+        
         const storagePath = `${EMPREENDIMENTO_ID}/${dataSelecao}/${item.categoria}/${arquivoParaUpload.name}`;
         const fileRef = ref(storage, storagePath);
 
@@ -483,7 +493,7 @@ export default function UploadInterface() {
               disabled={uploading}
               className="w-full bg-[#a96190] hover:bg-[#8e4f78] text-white font-bold py-2.5 sm:py-3 text-xs sm:text-sm rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              {uploading ? `Otimizando e Enviando... ${progresso}%` : "Confirmar e Publicar Todos"}
+              {uploading ? `Enviando... ${progresso}%` : "Confirmar e Publicar Todos"}
             </button>
           </div>
         )}
