@@ -14,18 +14,48 @@ export default function SecaoContato() {
   });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [utms, setUtms] = useState({ source: "", medium: "", campaign: "", content: "", term: "" });
+
+  const [utms, setUtms] = useState({
+    source: "",
+    medium: "",
+    campaign: "",
+    content: "",
+    term: "",
+    gclid: "",
+    gbraid: "",
+    wbraid: "",
+  });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      setUtms({
+
+      const currentParams = {
         source: params.get("utm_source") || "",
         medium: params.get("utm_medium") || "",
         campaign: params.get("utm_campaign") || "",
         content: params.get("utm_content") || "",
         term: params.get("utm_term") || "",
-      });
+        gclid: params.get("gclid") || "",
+        gbraid: params.get("gbraid") || "",
+        wbraid: params.get("wbraid") || "",
+      };
+
+      const hasParams = Object.values(currentParams).some((val) => val !== "");
+
+      if (hasParams) {
+        sessionStorage.setItem("nova_california_tracking", JSON.stringify(currentParams));
+        setUtms(currentParams);
+      } else {
+        const savedTracking = sessionStorage.getItem("nova_california_tracking");
+        if (savedTracking) {
+          try {
+            setUtms(JSON.parse(savedTracking));
+          } catch (e) {
+            console.error("Erro ao recuperar tracking do sessionStorage:", e);
+          }
+        }
+      }
     }
   }, []);
 
@@ -83,13 +113,17 @@ export default function SecaoContato() {
       if (typeof window !== "undefined" && (window as any).dataLayer) {
         (window as any).dataLayer.push({
           event: "lead_formulario_enviado",
-          lead_data: { ...formData, email: emailLimpo },
+          lead_data: { 
+            ...formData, 
+            email: emailLimpo,
+            gclid: utms.gclid,
+            utm_source: utms.source,
+          },
         });
       }
 
       setFormData({ nome: "", email: "", telefone: "", mensagem: "" });
 
-      // Redireciona para a página de confirmação
       router.push("/confirmacao-contato");
     } catch (error: any) {
       setStatus({

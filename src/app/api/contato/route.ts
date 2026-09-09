@@ -80,6 +80,14 @@ export async function POST(request: Request) {
             <p><strong>Telefone:</strong> ${telefone}</p>
             <p><strong>Origem:</strong> ${origemTexto}</p>
             <br/>
+            <p><strong>Parâmetros de Origem:</strong></p>
+            <ul>
+              <li><strong>UTM Source:</strong> ${utms?.source || "-"}</li>
+              <li><strong>UTM Medium:</strong> ${utms?.medium || "-"}</li>
+              <li><strong>UTM Campaign:</strong> ${utms?.campaign || "-"}</li>
+              <li><strong>GCLID (Google):</strong> ${utms?.gclid || "-"}</li>
+            </ul>
+            <br/>
             <p><strong>Mensagem:</strong></p>
             <p>${(mensagemTexto || "Sem mensagem informada").replace(/\n/g, "<br/>")}</p>
           `,
@@ -97,7 +105,7 @@ export async function POST(request: Request) {
       console.warn(">>> AVISO: RESEND_API_KEY não foi encontrada nas variáveis de ambiente.");
     }
 
-    // 4. Enviar Lead para o Webhook da Exent (Nova Califórnia com UTMs)
+    // 4. Enviar Lead para o Webhook da Exent (Nova Califórnia com UTMs e Google Ads Tracking)
     try {
       const webhookUrl = "https://hub.exent.com.br/api/webhook/inbound/8731e947f23c40f0c45e";
 
@@ -113,6 +121,9 @@ export async function POST(request: Request) {
         utm_campaign: utms?.campaign || "",
         utm_content: utms?.content || "",
         utm_term: utms?.term || "",
+        gclid: utms?.gclid || "",
+        gbraid: utms?.gbraid || "",
+        wbraid: utms?.wbraid || "",
       };
 
       const webhookRes = await fetch(webhookUrl, {
