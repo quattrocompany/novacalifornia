@@ -6,6 +6,17 @@ export const dynamic = "force-dynamic";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Evita que um lead mal-intencionado injete HTML/script no e-mail de
+// notificação (ex.: preenchendo "nome" com uma tag <script> ou <img onerror=...>).
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -68,28 +79,33 @@ export async function POST(request: Request) {
     // 3. Enviar E-mail via Resend API usando o domínio verificado
     if (process.env.RESEND_API_KEY) {
       try {
+        const destinatarios = (process.env.LEADS_NOTIFICATION_EMAIL || "estandenovacalifornia@gmail.com")
+          .split(",")
+          .map((addr) => addr.trim())
+          .filter(Boolean);
+
         const { data: emailData, error: emailErr } = await resend.emails.send({
           from: "Site Nova Califórnia <contato@novacalifornia.com.br>",
-          to: ["estandenovacalifornia@gmail.com"],
+          to: destinatarios,
           replyTo: (email && email.includes("@")) ? email : undefined,
-          subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${nome}`,
+          subject: `Novo Lead - Nova Califórnia (${isWhatsapp ? "WhatsApp" : "Formulário"}): ${escapeHtml(nome)}`,
           html: `
             <h2>Novo contato recebido pelo site Nova Califórnia</h2>
-            <p><strong>Nome:</strong> ${nome}</p>
-            <p><strong>E-mail:</strong> ${email}</p>
-            <p><strong>Telefone:</strong> ${telefone}</p>
+            <p><strong>Nome:</strong> ${escapeHtml(nome)}</p>
+            <p><strong>E-mail:</strong> ${escapeHtml(email)}</p>
+            <p><strong>Telefone:</strong> ${escapeHtml(telefone)}</p>
             <p><strong>Origem:</strong> ${origemTexto}</p>
             <br/>
             <p><strong>Parâmetros de Origem:</strong></p>
             <ul>
-              <li><strong>UTM Source:</strong> ${utms?.source || "-"}</li>
-              <li><strong>UTM Medium:</strong> ${utms?.medium || "-"}</li>
-              <li><strong>UTM Campaign:</strong> ${utms?.campaign || "-"}</li>
-              <li><strong>GCLID (Google):</strong> ${utms?.gclid || "-"}</li>
+              <li><strong>UTM Source:</strong> ${escapeHtml(utms?.source) || "-"}</li>
+              <li><strong>UTM Medium:</strong> ${escapeHtml(utms?.medium) || "-"}</li>
+              <li><strong>UTM Campaign:</strong> ${escapeHtml(utms?.campaign) || "-"}</li>
+              <li><strong>GCLID (Google):</strong> ${escapeHtml(utms?.gclid) || "-"}</li>
             </ul>
             <br/>
             <p><strong>Mensagem:</strong></p>
-            <p>${(mensagemTexto || "Sem mensagem informada").replace(/\n/g, "<br/>")}</p>
+            <p>${escapeHtml(mensagemTexto || "Sem mensagem informada").replace(/\n/g, "<br/>")}</p>
           `,
         });
 

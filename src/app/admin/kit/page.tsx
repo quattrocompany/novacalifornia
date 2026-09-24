@@ -1,14 +1,13 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import { isAdminAuthenticated } from "@/lib/adminAuth";
 import UploadInterface from "./UploadInterface";
 
+// Antes esta página checava só a presença do cookie "admin_session" (valor
+// fixo "autenticado", fácil de forjar pelo DevTools). Agora valida a
+// assinatura HMAC do cookie, igual às outras rotas administrativas.
 export default async function AdminKitPage() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("admin_session");
-
-  // Redireciona para o login se a sessão não existir
-  if (!session?.value) {
+  if (!(await isAdminAuthenticated())) {
     redirect("/admin");
   }
 
