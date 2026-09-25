@@ -1,16 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, DragEvent } from "react";
-import { storage } from "@/lib/firebase";
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-  listAll,
-  deleteObject,
-  getMetadata,
-  updateMetadata,
-} from "firebase/storage";
 
 interface ItemKit {
   id: string;
@@ -29,10 +19,10 @@ const comprimirImagem = (file: File, maxWidth = 1920, quality = 0.8): Promise<Fi
   return new Promise((resolve) => {
     // Se não for imagem (PDF, ZIP, Video, etc), devolve o arquivo original NA HORA
     if (
-      !file || 
-      file.size === 0 || 
-      !file.type.startsWith("image/") || 
-      file.type.includes("gif") || 
+      !file ||
+      file.size === 0 ||
+      !file.type.startsWith("image/") ||
+      file.type.includes("gif") ||
       file.type.includes("svg")
     ) {
       return resolve(file);
@@ -91,9 +81,45 @@ const comprimirImagem = (file: File, maxWidth = 1920, quality = 0.8): Promise<Fi
   });
 };
 
+// Envia o arquivo direto para a URL assinada do Cloud Storage via XHR (permite
+// acompanhar o progresso, diferente de fetch). Os cabeçalhos "x-goog-meta-*"
+// precisam ser exatamente os mesmos usados para gerar a assinatura no servidor.
+function enviarArquivoComProgresso(
+  uploadUrl: string,
+  file: File,
+  metadataHeaders: Record<string, string>,
+  onProgress: (pct: number) => void
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", uploadUrl, true);
+    xhr.setRequestHeader("Content-Type", file.type);
+    for (const [key, value] of Object.entries(metadataHeaders)) {
+      xhr.setRequestHeader(key, value);
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress((event.loaded / event.total) * 100);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`Falha no upload (status ${xhr.status}).`));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Erro de rede ao enviar o arquivo."));
+
+    xhr.send(file);
+  });
+}
+
 export default function UploadInterface() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [dataSelecao, setDataSelecao] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -113,7 +139,7 @@ export default function UploadInterface() {
     const ext = name.split(".").pop() || "";
 
     if (ext === "zip" || ext === "rar") return "pacote_zip";
-    
+
     if (ext === "pdf") {
       if (name.includes("tabela") || path.includes("tabela")) return "tabela_precos";
       return "lamina_pdf";
@@ -177,7 +203,7 @@ export default function UploadInterface() {
   const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const items = e.dataTransfer.items;
     let arquivosEncontrados: { file: File; categoria: string }[] = [];
 
@@ -221,38 +247,19 @@ export default function UploadInterface() {
   const carregarArquivos = async () => {
     setLoadingList(true);
     try {
-      const rootRef = ref(storage, EMPREENDIMENTO_ID);
-      const listRecursive = async (folderRef: any): Promise<ItemKit[]> => {
-        const res = await listAll(folderRef);
-        let filesList: ItemKit[] = [];
+      const res = await fetch("/api/admin/kit/list");
 
-        for (const folder of res.prefixes) {
-          const subFiles = await listRecursive(folder);
-          filesList = [...filesList, ...subFiles];
-        }
+      if (res.status === 401) {
+        window.location.replace("/admin");
+        return;
+      }
 
-        for (const itemRef of res.items) {
-          const url = await getDownloadURL(itemRef);
-          const meta = await getMetadata(itemRef);
-          const sizeMB = (meta.size / (1024 * 1024)).toFixed(1) + " MB";
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao carregar arquivos.");
 
-          filesList.push({
-            id: itemRef.fullPath,
-            nome: itemRef.name,
-            categoria: meta.customMetadata?.categoria || autoDetectarCategoria(new File([], itemRef.name)),
-            url: url,
-            tamanho: sizeMB,
-            dataUpload: meta.customMetadata?.dataUpload || meta.timeCreated.split("T")[0],
-            fullPath: itemRef.fullPath,
-          });
-        }
-        return filesList;
-      };
-
-      const todos = await listRecursive(rootRef);
-      setItensCadastrados(todos);
+      setItensCadastrados(data.items || []);
     } catch (e) {
-      console.error("Erro ao carregar arquivos do Firebase:", e);
+      console.error("Erro ao carregar arquivos do Kit Corretor:", e);
     } finally {
       setLoadingList(false);
     }
@@ -274,35 +281,34 @@ export default function UploadInterface() {
       for (const item of novosArquivos) {
         // Se for PDF ou ZIP, a compressão vai ignorar instantaneamente
         const arquivoParaUpload = await comprimirImagem(item.file);
-        
-        const storagePath = `${EMPREENDIMENTO_ID}/${dataSelecao}/${item.categoria}/${arquivoParaUpload.name}`;
-        const fileRef = ref(storage, storagePath);
 
-        const metadata = {
-          customMetadata: {
+        // 1. Pede ao servidor uma URL assinada (exige login) para este arquivo.
+        const urlRes = await fetch("/api/admin/kit/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: arquivoParaUpload.name,
+            contentType: arquivoParaUpload.type,
+            data: dataSelecao,
             categoria: item.categoria,
-            dataUpload: dataSelecao,
-            empreendimento: EMPREENDIMENTO_ID,
-          },
-        };
-
-        const uploadTask = uploadBytesResumable(fileRef, arquivoParaUpload, metadata);
-
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            "state_changed",
-            (snapshot: any) => {
-              const fileProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              console.log(`Upload ${arquivoParaUpload.name}: ${fileProgress.toFixed(0)}%`);
-            },
-            (error: any) => reject(error),
-            () => {
-              concluidos++;
-              setProgresso(Math.round((concluidos / totalArquivos) * 100));
-              resolve();
-            }
-          );
+          }),
         });
+
+        if (urlRes.status === 401) {
+          window.location.replace("/admin");
+          return;
+        }
+
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error || "Erro ao preparar upload.");
+
+        // 2. Envia o arquivo direto para o Cloud Storage usando a URL assinada.
+        await enviarArquivoComProgresso(urlData.uploadUrl, arquivoParaUpload, urlData.metadataHeaders || {}, (pct) => {
+          console.log(`Upload ${arquivoParaUpload.name}: ${pct.toFixed(0)}%`);
+        });
+
+        concluidos++;
+        setProgresso(Math.round((concluidos / totalArquivos) * 100));
       }
 
       alert("Arquivos do Nova Califórnia publicados com sucesso!");
@@ -317,11 +323,26 @@ export default function UploadInterface() {
     }
   };
 
+  const excluirNoServidor = async (paths: string[]) => {
+    const res = await fetch("/api/admin/kit/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paths }),
+    });
+
+    if (res.status === 401) {
+      window.location.replace("/admin");
+      throw new Error("Sessão expirada.");
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Erro ao excluir arquivo(s).");
+  };
+
   const handleDeletar = async (fullPath: string) => {
-    if (confirm("Tem certeza que deseja apagar este arquivo do Firebase?")) {
+    if (confirm("Tem certeza que deseja apagar este arquivo?")) {
       try {
-        const fileRef = ref(storage, fullPath);
-        await deleteObject(fileRef);
+        await excluirNoServidor([fullPath]);
         alert("Arquivo excluído com sucesso!");
         setSelecionados((prev) => prev.filter((p) => p !== fullPath));
         await carregarArquivos();
@@ -336,10 +357,7 @@ export default function UploadInterface() {
     if (confirm(`Tem certeza que deseja excluir os ${selecionados.length} arquivo(s) selecionado(s)?`)) {
       setLoadingList(true);
       try {
-        for (const fullPath of selecionados) {
-          const fileRef = ref(storage, fullPath);
-          await deleteObject(fileRef);
-        }
+        await excluirNoServidor(selecionados);
         alert("Arquivos excluídos com sucesso!");
         setSelecionados([]);
         await carregarArquivos();
@@ -360,14 +378,20 @@ export default function UploadInterface() {
 
     setLoadingList(true);
     try {
-      for (const fullPath of selecionados) {
-        const fileRef = ref(storage, fullPath);
-        await updateMetadata(fileRef, {
-          customMetadata: {
-            categoria: novaCategoria.trim().toLowerCase(),
-          },
-        });
+      const res = await fetch("/api/admin/kit/update-metadata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paths: selecionados, categoria: novaCategoria.trim().toLowerCase() }),
+      });
+
+      if (res.status === 401) {
+        window.location.replace("/admin");
+        return;
       }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao atualizar categoria.");
+
       alert("Categorias atualizadas com sucesso!");
       setSelecionados([]);
       await carregarArquivos();
@@ -403,7 +427,6 @@ export default function UploadInterface() {
 
   return (
     <div className="space-y-6 sm:space-y-10">
-      
       <input
         ref={fileInputRef}
         type="file"
@@ -470,7 +493,7 @@ export default function UploadInterface() {
                 Limpar lista
               </button>
             </div>
-            
+
             <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
               {novosArquivos.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 sm:p-3 rounded-lg border border-gray-200">
@@ -581,8 +604,8 @@ export default function UploadInterface() {
                   </tr>
                 ) : (
                   itensFiltradosAdmin.map((item) => (
-                    <tr 
-                      key={item.id} 
+                    <tr
+                      key={item.id}
                       className={`hover:bg-gray-50 transition-colors ${
                         selecionados.includes(item.fullPath) ? "bg-pink-50/50" : ""
                       }`}
@@ -623,7 +646,6 @@ export default function UploadInterface() {
           </div>
         )}
       </div>
-
     </div>
   );
 }
