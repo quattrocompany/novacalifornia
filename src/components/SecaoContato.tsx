@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { getTrackingPayload } from "@/lib/exentTracking";
 
 export default function SecaoContato() {
   const router = useRouter();
@@ -101,6 +102,7 @@ export default function SecaoContato() {
           mensagem: formData.mensagem,
           via: "formulario_site",
           utms: utms,
+          tracking: getTrackingPayload(),
         }),
       });
 

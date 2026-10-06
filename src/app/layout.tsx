@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import Script from "next/script";
+import ExentTracking from "@/components/ExentTracking";
 import "@/app/globals.css";
 
 // Configuração centralizada da fonte Montserrat
@@ -67,7 +68,8 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        
+
+        <ExentTracking />
         {children}
       </body>
     </html>
